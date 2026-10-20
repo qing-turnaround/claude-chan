@@ -111,6 +111,12 @@ Claude Code 要权限时，她旁边会弹出一张卡片，写着要执行的�
 
 所有操作都从**右键她**开始（Clawd 形态右键任意一只）。
 
+<p align="center">
+  <img src="docs/menu-zh.png" height="420" alt="右键菜单">
+  &nbsp;&nbsp;
+  <img src="docs/settings-zh.png" height="420" alt="设置窗口">
+</p>
+
 | 菜单 | 作用 |
 |---|---|
 | 动作 | 让她做个动作：思考、吃饭团、伸懒腰、睡觉…（Clawd 形态没有这项） |
@@ -121,8 +127,6 @@ Claude Code 要权限时，她旁边会弹出一张卡片，写着要执行的�
 | **设置…** | 打开设置窗口 |
 | 退出 | |
 
-<img src="docs/settings-zh.png" width="300" align="right" alt="设置窗口">
-
 设置窗口里可以：
 
 - **换装**，Clawd 形态下选显示哪只
@@ -131,8 +135,6 @@ Claude Code 要权限时，她旁边会弹出一张卡片，写着要执行的�
 - **双击头批准**：默认开，不想要可以关掉
 - **开机自启**：默认关
 - **语言**：默认跟随系统（简体 / 繁体 / 日文 / 英文）
-
-<br clear="right">
 
 ## 开发
 

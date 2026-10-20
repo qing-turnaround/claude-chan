@@ -111,6 +111,12 @@ Needs Claude Code **2.1.113 or newer** for the approval card (older versions tur
 
 Everything starts with **right-clicking her** (with Clawd, right-click either one).
 
+<p align="center">
+  <img src="docs/menu-en.png" height="420" alt="Right-click menu">
+  &nbsp;&nbsp;
+  <img src="docs/settings-en.png" height="420" alt="Settings window">
+</p>
+
 | Menu | What it does |
 |---|---|
 | Actions | Play an action: think, snack, stretch, sleep… (not in the Clawd outfit) |
@@ -121,8 +127,6 @@ Everything starts with **right-clicking her** (with Clawd, right-click either on
 | **Settings…** | Open the Settings window |
 | Quit | |
 
-<img src="docs/settings-en.png" width="300" align="right" alt="Settings window">
-
 In Settings:
 
 - **Outfit**, and which Clawds to show
@@ -131,8 +135,6 @@ In Settings:
 - **Double-click to approve**: on by default
 - **Launch at startup**: off by default
 - **Language**: follows your system (English / 简体中文 / 繁體中文 / 日本語) unless you pick one
-
-<br clear="right">
 
 ## Development
 
