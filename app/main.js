@@ -339,7 +339,7 @@ http.createServer((req, res) => {
     req.on('end', () => {
       const v = body.trim();
       if (req.url === '/focus') { claude.setFocus(v || null); pushStatus('idle'); }
-      if (req.url === '/lang') { settings.lang = v || 'auto'; save(); }
+      if (req.url === '/lang') apply('lang', v || 'auto');
       if (req.url === '/auto') win.webContents.send('auto', v !== '0');
       if (req.url === '/size' && Number(v)) apply('size', v);
       if (req.url === '/place') {          // "fx" = horizontal position as a fraction of the work area, feet on the taskbar

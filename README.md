@@ -40,15 +40,13 @@ Running several sessions at once is fine: if any session is waiting for you, she
 
 ### Approve right from the pet
 
-When Claude Code asks for permission, a card pops up next to her: the command, or the file and the lines being changed. Click **Allow**, **Always allow** (with the rule Claude Code suggests) or **Deny**, without switching to the terminal. When Claude Code asks you a question, the card shows the options and you answer there. Answering in the terminal still works; the card goes away by itself, and if the pet isn't running Claude Code just asks in the terminal as usual. Or just double-click her head while she raises her hand: that allows it once (you can turn this off in Settings).
+When Claude Code asks for permission, a card pops up next to her: the command, or the file and the lines being changed.
 
-## Also
+- Click **Allow**, **Always allow** (with the rule Claude Code suggests) or **Deny**, without switching to the terminal
+- Even quicker: while she raises her hand, **double-click her head** to allow it once (you can turn this off in Settings)
+- When Claude Code asks you a question, the card shows the options and you answer there
 
-- Wanders around, thinks, snacks, stretches and waves when idle
-- Click her and she's happy; pick her up and she swings like a pendulum; throw her and she lands back on your desktop
-- Leave your computer for 5 minutes and she yawns and falls asleep; she wakes up when you're back
-- Only her own pixels catch the mouse — the transparent area around her never blocks your clicks
-- A fifth outfit, **Clawd**, swaps her for Claude Code's mascot: a red one and a pink one with a flower (show either or both) crawling around the edges of your screen, up the walls and upside down across the top. While Claude Code works, the red one sits down at a little laptop and types, and the pink one helps: it cheers with a flag, fetches coffee, and hauls a code block onto a pile for every step Claude Code finishes. When it needs your approval they raise a hand with a "!"; when it's done the pile sparkles away and they cheer. When nothing is going on they wander a bit and rest a lot: sitting, looking around, stretching, dozing, and they fall asleep when you step away. Pick one up and throw it, and it falls, squashes and gets dizzy; let go next to a wall and it grabs on. Their eyes follow your cursor, and their faces change with what they're doing. Now and then they chase each other, walk off hand in hand, or one rides on the other's head. Right-click one for the menu.
+Answering in the terminal still works; the card goes away by itself, and if the pet isn't running Claude Code just asks in the terminal as usual.
 
 ## Outfits
 
@@ -60,9 +58,23 @@ Five outfits. Right-click → **Outfit** to switch, or pick one in **Settings…
 | **Maid** | **Spark Spirit** |
 | <img src="docs/character-sheets/maid.webp" width="420"> | <img src="docs/character-sheets/spirit.webp" width="420"> |
 
-**Clawd**: the fifth outfit swaps her for Claude Code's mascot, a red one and a pink one (show either or both). They crawl along the screen edges, hold hands, pile up, and pitch in while Claude Code works.
+**Clawd**: the fifth outfit swaps her for Claude Code's mascot, a red one and a pink one with a flower (show either or both).
 
 <p align="center"><img src="docs/clawd.gif" width="480"></p>
+
+- They crawl around the edges of your screen, up the walls and upside down across the top
+- While Claude Code works, the red one types at a little laptop; the pink one cheers with a flag, fetches coffee, and hauls a code block onto a pile for every step. When it's done the pile sparkles away and they cheer
+- When it needs your approval they raise a hand with a "!"; double-click the one raising its hand to approve
+- Pick one up and throw it, and it falls, squashes and gets dizzy; let go next to a wall and it grabs on
+- Now and then they chase each other, walk off hand in hand, or one rides on the other's head
+- When nothing is going on they wander a bit and rest a lot, and fall asleep when you step away
+
+## Also
+
+- Wanders around, thinks, snacks, stretches and waves when idle
+- Click her and she's happy; pick her up and she swings like a pendulum; throw her and she lands back on your desktop
+- Leave your computer for 5 minutes and she yawns and falls asleep; she wakes up when you're back
+- Only her own pixels catch the mouse — the transparent area around her never blocks your clicks
 
 ## Install
 
@@ -83,13 +95,44 @@ The builds aren't signed by Microsoft / Apple yet:
 
 Needs Claude Code **2.1.113 or newer** for the approval card (older versions turn a failed permission hook into a denial while the pet is closed).
 
-Then right-click her and check **Link Claude Code**. This adds 7 hooks to `~/.claude/settings.json`:
+## Getting started
+
+1. Open it and she shows up at the bottom of your desktop.
+2. **Right-click her → check Link Claude Code**. From then on she reacts when Claude Code works, asks for permission, or finishes.
+3. To change outfits, resize her or stop her wandering: **right-click her → Settings…**.
+
+**Link Claude Code** adds 7 hooks to `~/.claude/settings.json`:
 
 - They use the system's built-in `curl` to forward events, so Node is not required. If the pet isn't running, they do nothing and never error.
 - Your settings file is backed up to `settings.json.claude-chan.bak` before the first change.
 - Uncheck to uninstall. Only her own hooks are removed; everything else is left untouched.
 
-The right-click menu also has actions, free roaming and **Settings…**. The Settings window has the outfit picker, a size slider (50–200%, the pet follows it live), free roaming (when off, the pet stays put and still reacts to Claude Code), launch at startup (off by default) and language. Text follows your system language (English / 简体中文 / 繁體中文 / 日本語) unless you pick one.
+## Right-click menu and Settings
+
+Everything starts with **right-clicking her** (with Clawd, right-click either one).
+
+| Menu | What it does |
+|---|---|
+| Actions | Play an action: think, snack, stretch, sleep… (not in the Clawd outfit) |
+| Work status | Switch to Working / Waiting for you / Done by hand to see how it looks |
+| Outfit | The five outfits; with Clawd, also which ones to show |
+| Link Claude Code | Install / remove the hooks |
+| Free roaming | When off, stays put and still reacts to Claude Code |
+| **Settings…** | Open the Settings window |
+| Quit | |
+
+<img src="docs/settings-en.png" width="300" align="right" alt="Settings window">
+
+In Settings:
+
+- **Outfit**, and which Clawds to show
+- **Size**: a 50–200% slider, the pet follows it live; ↺ resets it
+- **Free roaming**, **Link Claude Code**
+- **Double-click to approve**: on by default
+- **Launch at startup**: off by default
+- **Language**: follows your system (English / 简体中文 / 繁體中文 / 日本語) unless you pick one
+
+<br clear="right">
 
 ## Development
 
