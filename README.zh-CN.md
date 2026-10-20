@@ -5,7 +5,7 @@
 <h1 align="center">Claude 酱</h1>
 
 <p align="center">
-  <b>Claude Code 的二次元桌宠。</b><br>
+  <b>把 Claude Code 的工作状态，变成桌面上的二次元桌宠。</b><br>
   她住在你的桌面上，跟着 Claude Code 一起干活：<br>
   跑命令时敲电脑，等你批准时举手，做完了跳起来欢呼。
 </p>
@@ -102,12 +102,6 @@ npm run dist          # 打 Windows 安装包到 app/dist/
 
 本地接口 `127.0.0.1:47823`：`POST /hook`（Claude Code hook 原始 stdin）、`POST /permission`（批准卡片用的 hook）、`POST /state`（`{"state":"work"|"wait"|"done"|"idle"}`，给其他工具用）。来自浏览器的请求一律拒绝。测试用的接口只在设置了 `PET_DEBUG` 时存在。
 
-## 素材是怎么做的
-
-- **立绘与姿势**：gpt-image-2 以角色设定图为参考出绿幕图，`art/process.py` 抠图并按头发宽度统一大小
-- **走路**：一张图里出 4 帧侧面走路循环，`art/process_walk.py` 切帧并按头部对齐
-- **动作片段**：MiniMax H3 首尾帧图生视频，**首帧和尾帧都是待机立绘**，所以每个动作都从待机开始、回到待机结束，可以无缝切换；`art/process_video.py` 逐帧抠绿转 WebP
-- 提示词在 `h3/*.txt`（仓库里是英文译本；这批片段实际用的是中文原版——H3 的文本编码器基于 Qwen，实测中文更听话）
 
 ## 授权
 

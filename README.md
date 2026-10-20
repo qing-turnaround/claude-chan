@@ -5,7 +5,7 @@
 <h1 align="center">Claude-chan</h1>
 
 <p align="center">
-  <b>An anime desktop pet for Claude Code.</b><br>
+  <b>A desktop pet that shows what Claude Code is doing.</b><br>
   She lives on your desktop and works alongside Claude Code: typing while it runs tools,<br>
   raising her hand when it needs your approval, and cheering when it's done.
 </p>
@@ -102,12 +102,6 @@ npm run dist          # build the Windows installer into app/dist/
 
 Local endpoint `127.0.0.1:47823`: `POST /hook` (raw Claude Code hook stdin), `POST /permission` (the approval-card hook), `POST /state` (`{"state":"work"|"wait"|"done"|"idle"}`, for other tools). Requests from web browsers are refused. Test helpers exist only when `PET_DEBUG` is set.
 
-## How the art was made
-
-- **Poses**: gpt-image-2 renders each pose on a green screen using the character sheet as reference; `art/process.py` keys them out and normalizes size by hair width.
-- **Walk cycle**: four side-view frames in one image; `art/process_walk.py` slices them and aligns by head position.
-- **Action clips**: MiniMax H3 first/last-frame image-to-video. **Both the first and last frame are the idle pose**, so every action starts and ends at idle and blends in seamlessly. `art/process_video.py` keys every frame and exports WebP.
-- Prompts live in `h3/*.txt` (English translations; the clips in this repo were generated from the Chinese originals, which H3's Qwen-based text encoder followed more closely in our tests).
 
 ## License
 
