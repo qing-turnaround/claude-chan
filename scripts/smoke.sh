@@ -21,7 +21,10 @@ echo "debug: $(cat smoke/debug.json)"
 curl -s -o smoke/pet-idle.png "$B/shot"
 curl -s -X POST -d work "$B/state" > /dev/null; sleep 3
 curl -s -o smoke/pet-work.png "$B/shot"
-curl -s -o smoke/settings.png "$B/settings-shot"
+curl -s -o smoke/settings-first.png "$B/settings-shot"   # opens it
+sleep 4
+curl -s -o smoke/settings.png "$B/settings-shot"         # and again once it has had time to fill in
+curl -s "$B/settings-state" > smoke/settings-state.json
 curl -s -X POST -d clawd "$B/skin" > /dev/null; sleep 5
 curl -s "$B/critters" > smoke/critters.json
 curl -s -o smoke/clawd-red.png "$B/critter-shot?red"

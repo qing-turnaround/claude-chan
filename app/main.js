@@ -368,6 +368,8 @@ http.createServer((req, res) => {
     let body = '';
     req.on('data', c => body += c);
     req.on('end', () => { critters.debugDrag(req.url.split('?')[1] || 'red', JSON.parse(body).map(([x, y]) => ({ x, y }))); res.end('ok'); });
+  } else if (req.url === '/settings-state') {   // debug: what the Settings window is given (or why it fails)
+    try { res.end(JSON.stringify(settingsState())); } catch (e) { res.end(JSON.stringify({ error: String(e && e.stack || e) })); }
   } else if (req.url === '/settings-shot') {   // debug: open Settings and capture it
     openSettings();
     setTimeout(() => settingsWin.webContents.capturePage().then((img) => { res.setHeader('Content-Type', 'image/png'); res.end(img.toPNG()); }), 900);
