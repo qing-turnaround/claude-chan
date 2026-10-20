@@ -1,0 +1,26 @@
+{
+ "hoodie": {
+  "idle": 700,
+  "wait": 673,
+  "work": 501,
+  "sleep": 498
+ },
+ "scholar": {
+  "idle": 700,
+  "wait": 736,
+  "work": 482,
+  "sleep": 447
+ },
+ "maid": {
+  "idle": 700,
+  "wait": 739,
+  "work": 493,
+  "sleep": 531
+ },
+ "spirit": {
+  "idle": 700,
+  "wait": 703,
+  "work": 529,
+  "sleep": 544
+ }
+}

@@ -1,0 +1,69 @@
+{
+  "name": "claude-chan",
+  "version": "0.1.0",
+  "description": "Claude Code 的二次元桌宠",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron .",
+    "dist": "electron-builder --win"
+  },
+  "devDependencies": {
+    "electron": "^44.9.0",
+    "electron-builder": "^26.15.3"
+  },
+  "author": "qing",
+  "build": {
+    "appId": "com.qing.claudechan",
+    "productName": "Claude-chan",
+    "files": [
+      "main.js",
+      "preload.js",
+      "renderer.js",
+      "index.html",
+      "style.css",
+      "claude-hooks.js",
+      "assets/**",
+      "i18n.js",
+      "critters.js",
+      "critter.html",
+      "settings.html",
+      "settings.js",
+      "settings-preload.js",
+      "approvals.js",
+      "approvals.html",
+      "approvals-ui.js",
+      "approvals-preload.js",
+      "critter-renderer.js",
+      "critter-preload.js"
+    ],
+    "directories": {
+      "output": "dist",
+      "buildResources": "build"
+    },
+    "win": {
+      "target": [
+        {
+          "target": "nsis",
+          "arch": [
+            "x64"
+          ]
+        }
+      ],
+      "icon": "build/icon.ico"
+    },
+    "nsis": {
+      "oneClick": false,
+      "perMachine": false,
+      "allowToChangeInstallationDirectory": true,
+      "shortcutName": "Claude-chan",
+      "artifactName": "Claude-chan-Setup-${version}.exe",
+      "multiLanguageInstaller": true,
+      "installerLanguages": [
+        "en_US",
+        "zh_CN",
+        "zh_TW",
+        "ja_JP"
+      ]
+    }
+  }
+}

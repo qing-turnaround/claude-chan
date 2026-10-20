@@ -1,0 +1,12 @@
+node_modules/
+h3/out/
+h3/*.log
+art/raw/
+*.log
+设定图/参考_ZipZipPipe/
+预览/
+dist/
+__pycache__/
+*.pyc
+设定图/
+scripts/record_demo.py

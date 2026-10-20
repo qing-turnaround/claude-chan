@@ -1,0 +1,50 @@
+// Menu and Settings text. Follows the system language by default (Simplified / Traditional Chinese, Japanese, English for everything else); can also be set manually in the menu
+const STR = {
+  zh: { actions: '动作', idle: '待机', think: '思考', eat: '吃饭团', stretch: '伸懒腰', yawn: '打哈欠', wave: '打招呼',
+        sleep: '睡觉', done: '欢呼', walk: '走走', status: '工作状态', work: '工作中', wait: '等你确认', finish: '完成',
+        link: '联动 Claude Code', size: '大小', roam: '自由走动', login: '开机自启', quit: '退出', cantEdit: '改不了',
+        outfit: '换装', skins: { hoodie: '卫衣', scholar: '学者', maid: '女仆', spirit: '星芒精灵', clawd: 'Clawd' },
+        language: '语言', auto: '跟随系统', clawd: { red: '红色', pink: '粉色' },
+        settings: '设置…', title: '设置', secLook: '外观', secMove: '行为', secGeneral: '通用', who: '显示哪只', reset: '默认',
+        roamHint: '关掉后原地待着，照样跟着 Claude Code 动', linkHint: '干活、等你批准、做完时都会跟着反应',
+        allow: '允许', deny: '拒绝', always: '始终允许', submit: '提交', toTerminal: '去终端回答', question: '有问题问你', },
+  tw: { actions: '動作', idle: '待機', think: '思考', eat: '吃飯糰', stretch: '伸懶腰', yawn: '打哈欠', wave: '打招呼',
+        sleep: '睡覺', done: '歡呼', walk: '走走', status: '工作狀態', work: '工作中', wait: '等你確認', finish: '完成',
+        link: '連動 Claude Code', size: '大小', roam: '自由走動', login: '開機自動啟動', quit: '結束', cantEdit: '無法寫入',
+        outfit: '換裝', skins: { hoodie: '帽T', scholar: '學者', maid: '女僕', spirit: '星芒精靈', clawd: 'Clawd' },
+        language: '語言', auto: '跟隨系統', clawd: { red: '紅色', pink: '粉色' },
+        settings: '設定…', title: '設定', secLook: '外觀', secMove: '行為', secGeneral: '一般', who: '顯示哪隻', reset: '預設',
+        roamHint: '關掉後原地待著，照樣跟著 Claude Code 動', linkHint: '工作、等你批准、完成時都會跟著反應',
+        allow: '允許', deny: '拒絕', always: '一律允許', submit: '送出', toTerminal: '到終端機回答', question: '有問題問你', },
+  ja: { actions: 'アクション', idle: '待機', think: '考えごと', eat: 'おにぎり', stretch: 'のび', yawn: 'あくび', wave: 'あいさつ',
+        sleep: 'ねる', done: 'バンザイ', walk: 'おさんぽ', status: '作業状態', work: '作業中', wait: '許可待ち', finish: '完了',
+        link: 'Claude Code と連動', size: 'サイズ', roam: '自由に歩く', login: 'スタートアップ起動', quit: '終了', cantEdit: '書き込めません',
+        outfit: '着せ替え', skins: { hoodie: 'パーカー', scholar: '学者', maid: 'メイド', spirit: '星の精', clawd: 'Clawd' },
+        language: '言語', auto: 'システムに合わせる', clawd: { red: 'レッド', pink: 'ピンク' },
+        settings: '設定…', title: '設定', secLook: '見た目', secMove: 'ふるまい', secGeneral: '一般', who: '表示する子', reset: '標準',
+        roamHint: 'オフにするとその場にとどまり、Claude Code への反応だけ続けます', linkHint: '作業中・許可待ち・完了に合わせて反応します',
+        allow: '許可', deny: '拒否', always: '常に許可', submit: '送信', toTerminal: 'ターミナルで答える', question: '質問があります', },
+  en: { actions: 'Actions', idle: 'Idle', think: 'Think', eat: 'Snack', stretch: 'Stretch', yawn: 'Yawn', wave: 'Wave',
+        sleep: 'Sleep', done: 'Cheer', walk: 'Walk', status: 'Work status', work: 'Working', wait: 'Waiting for you', finish: 'Done',
+        link: 'Link Claude Code', size: 'Size', roam: 'Free roaming', login: 'Launch at startup', quit: 'Quit', cantEdit: 'Cannot write',
+        outfit: 'Outfit', skins: { hoodie: 'Hoodie', scholar: 'Scholar', maid: 'Maid', spirit: 'Spark Spirit', clawd: 'Clawd' },
+        language: 'Language', auto: 'System default', clawd: { red: 'Red', pink: 'Pink' },
+        settings: 'Settings…', title: 'Settings', secLook: 'Look', secMove: 'Behavior', secGeneral: 'General', who: 'Which ones', reset: 'Default',
+        roamHint: 'When off, stays put and still reacts to Claude Code', linkHint: 'Reacts while it works, when it needs your approval, and when it is done',
+        allow: 'Allow', deny: 'Deny', always: 'Always allow', submit: 'Submit', toTerminal: 'Answer in terminal', question: 'A question for you', },
+};
+
+// Each language is shown in its own script in the language menu
+const NATIVE = { zh: '简体中文', tw: '繁體中文', ja: '日本語', en: 'English' };
+
+function fromLocale(locale) {
+  const l = (locale || '').toLowerCase();
+  if (l.startsWith('zh')) return /tw|hk|mo|hant/.test(l) ? 'tw' : 'zh';
+  return l.startsWith('ja') ? 'ja' : 'en';
+}
+
+// choice: 'auto' or a language code; locale: system language
+module.exports = (choice, locale) => STR[STR[choice] ? choice : fromLocale(locale)];
+module.exports.LANGS = Object.keys(STR);
+module.exports.NATIVE = NATIVE;
+module.exports.fromLocale = fromLocale;

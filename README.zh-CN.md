@@ -1,0 +1,102 @@
+<p align="center">
+  <img src="app/build/icon.png" width="120" alt="Claude 酱">
+</p>
+
+<h1 align="center">Claude 酱</h1>
+
+<p align="center">
+  <b>Claude Code 的二次元桌宠。</b><br>
+  她住在你的桌面上，跟着 Claude Code 一起干活：<br>
+  跑命令时敲电脑，等你批准时举手，做完了跳起来欢呼。
+</p>
+
+<p align="center">
+  <a href="README.md">English</a> | <b>简体中文</b> | <a href="README.ja.md">日本語</a>
+</p>
+
+> 非官方同人项目，与 Anthropic 无关。
+
+<table align="center">
+  <tr>
+    <td align="center"><img src="docs/cheer.gif" width="150"><br>欢呼</td>
+    <td align="center"><img src="docs/wave.gif" width="150"><br>打招呼</td>
+    <td align="center"><img src="docs/stretch.gif" width="150"><br>伸懒腰</td>
+    <td align="center"><img src="docs/eat.gif" width="150"><br>吃饭团</td>
+    <td align="center"><img src="docs/walk.gif" width="150"><br>走路</td>
+  </tr>
+</table>
+
+## 跟 Claude Code 联动
+
+<p align="center"><img src="docs/states.gif" width="180"></p>
+
+| Claude Code 在… | 她在… |
+|---|---|
+| 思考、调工具 | 盘腿敲电脑 |
+| 等你批准权限 | 举手，头上冒「!」 |
+| 一轮做完 | 跳起来欢呼 |
+
+同时开好几个会话也没关系：任何一个在等你，她就举手；全部做完才欢呼。
+
+### 在桌宠上直接批准
+
+Claude Code 要权限时，她旁边会弹出一张卡片，写着要执行的命令，或者要改的文件和改动的几行。点 **允许**、**始终允许**（用 Claude Code 自己建议的规则）或 **拒绝** 就行，不用切回终端。Claude Code 问你问题时，卡片上直接列出选项，点一下就能回答。在终端里回答也照样可以，卡片会自己消失；桌宠没开时，Claude Code 照常在终端里问你。
+
+## 其他
+
+- 闲着会自己走动、思考、吃饭团、伸懒腰、打招呼
+- 点她会开心；拎起来会像钟摆一样晃，甩出去会落回桌面
+- 你离开电脑 5 分钟，她打个哈欠睡着；回来就醒
+- 只有点在她身上才算点到，旁边的透明区域不挡你的鼠标
+- 第五套换装 **Clawd**：把 Claude 酱换成 Claude Code 的吉祥物，红色一只、戴小花的粉色一只（可以只放一只，也可以两只一起），沿着屏幕四周爬，爬上墙、倒挂着走过顶边。Claude Code 干活时，红色那只坐下来对着小电脑敲键盘，粉色那只当助手：挥小旗加油、端咖啡，Claude Code 每完成一步就扛一块代码块垒到旁边的小堆上。等你批准时它们举手冒「!」；做完时小堆闪一下消失，两只一起欢呼。没事的时候走走停停，多半时间坐着、东张西望、伸懒腰、打盹，你离开电脑就原地睡着。可以把它拎起来扔出去，摔下来会压扁、发晕；在墙边松手它会扒住墙。眼睛跟着鼠标转，表情随状态变。两只偶尔互相追着跑，或者一只骑到另一只头上。右键它打开菜单。
+
+## 换装
+
+右键 →「换装」切换。每套衣服都有完整的姿势、走路和动作片段。
+
+| 卫衣 | 学者 |
+|:---:|:---:|
+| <img src="docs/character-sheets/hoodie.webp" width="420"> | <img src="docs/character-sheets/scholar.webp" width="420"> |
+| **女仆** | **星芒精灵** |
+| <img src="docs/character-sheets/maid.webp" width="420"> | <img src="docs/character-sheets/spirit.webp" width="420"> |
+
+## 安装
+
+**Windows**（10 / 11）：下载 [Releases](../../releases) 里的 `Claude-chan-Setup-x.y.z.exe` 安装。安装包暂时没有代码签名，Windows 可能提示「Windows 已保护你的电脑」，点 **更多信息 → 仍要运行**。
+
+**macOS / Linux**：暂不支持。代码大部分是通用的，但还没有打包，也没在这两个系统上测过（Linux 上 Electron 不支持透明窗口的点击穿透）。
+
+批准卡片需要 Claude Code **2.1.113 或更新**（更早的版本在桌宠没开时，会把权限 hook 连不上当成拒绝）。
+
+装好后右键她，勾选 **联动 Claude Code**。这会往 `~/.claude/settings.json` 加 7 条 hook：
+
+- 用系统自带的 `curl` 把事件转给桌宠，不依赖 Node；桌宠没开时什么也不做，不会报错
+- 第一次改动前备份成 `settings.json.claude-chan.bak`
+- 取消勾选即卸载，只删自己加的，别的 hook 不动
+
+右键菜单里还有动作、自由走动和「设置…」。设置窗口里可以换装，用滑块调大小（50%–200%，拖的时候桌宠实时跟着变），开关自由走动（关掉后原地待着，照样跟着 Claude Code 动）、开机自启（默认关），以及切换语言。文字默认跟随系统语言（简体 / 繁体 / 日文 / 英文）。
+
+## 开发
+
+```bash
+cd app
+npm install
+npx electron .        # 运行
+npm run dist          # 打 Windows 安装包到 app/dist/
+```
+
+本地接口 `127.0.0.1:47823`：`POST /hook`（Claude Code hook 原始 stdin）、`POST /permission`（批准卡片用的 hook）、`POST /state`（`{"state":"work"|"wait"|"done"|"idle"}`，给其他工具用）。来自浏览器的请求一律拒绝。测试用的接口只在设置了 `PET_DEBUG` 时存在。
+
+## 素材是怎么做的
+
+- **立绘与姿势**：gpt-image-2 以角色设定图为参考出绿幕图，`art/process.py` 抠图并按头发宽度统一大小
+- **走路**：一张图里出 4 帧侧面走路循环，`art/process_walk.py` 切帧并按头部对齐
+- **动作片段**：MiniMax H3 首尾帧图生视频，**首帧和尾帧都是待机立绘**，所以每个动作都从待机开始、回到待机结束，可以无缝切换；`art/process_video.py` 逐帧抠绿转 WebP
+- 提示词在 `h3/*.txt`（仓库里是英文译本；这批片段实际用的是中文原版——H3 的文本编码器基于 Qwen，实测中文更听话）
+
+## 授权
+
+- 代码：MIT
+- 角色形象与美术素材：CC BY-NC 4.0（可以二创，请署名，不可商用）
+
+「Claude」是 Anthropic 的商标。Clawd 是 Anthropic 的 Claude Code 吉祥物，这里的两只小伙伴是用代码画的同人形象。

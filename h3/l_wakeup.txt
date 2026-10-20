@@ -1,0 +1,12 @@
+summary:
+[keyframe completion] A 3.75-second locked-off full-body shot. The first frame is her sleeping pose and the last frame is her standing pose; the clip is the transition between them. No human voice anywhere in the clip.
+
+detailed_description:
+A uniform pure green chroma-key background from start to finish, with nothing but pure green: no ground, no shadows, no other objects. In the center is the chibi anime girl from the first frame; her appearance, outfit, hairstyle, art style, line work and color palette stay exactly identical to the first frame: Japanese cel-shaded anime style, clean outlines, flat coloring.
+[Shot 1] The camera is completely locked off: no push, pull, pan or move, and the character's size and position stay unchanged. She is startled awake, rubs her eyes with one hand, blinks, then gets up from the floor and stands up straight, ending exactly in the standing pose of the last frame. The laptop she was hugging disappears naturally behind her as she stands. The motion is lively, cute and moderate in amplitude, like a character animation in an anime mobile game.
+
+overall_soundscape:
+Completely silent.
+
+non_diegetic_music:
+N/A

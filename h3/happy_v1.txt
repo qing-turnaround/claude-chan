@@ -1,0 +1,12 @@
+summary:
+[keyframe completion] A 3.75-second locked-off full-body shot. The first and last frames are the same image, so the action connects end to end and can loop. No human voice anywhere in the clip.
+
+detailed_description:
+A uniform pure green chroma-key background from start to finish, with nothing but pure green: no ground, no shadows, no other objects. In the center is the chibi anime girl from the first frame; her appearance, art style, line work and color palette stay exactly identical to the first frame: Japanese cel-shaded anime style, clean outlines, flat coloring.
+[Shot 1] The camera is completely locked off: no push, pull, pan or move, and the character's size and position stay unchanged. She cups her cheeks with both hands, eyes closed, smiling happily, her body swaying gently left and right twice to a rhythm, and on the second sway she hops lightly up on tiptoe, her short orange hair, the ahoge on top and the star hair ornament bouncing with the motion, and the baggy hoodie sleeves swinging along. Finally she returns smoothly to the exact same pose as the first frame. The motion is lively, cute and moderate in amplitude, like a character idle animation in an anime mobile game.
+
+overall_soundscape:
+Completely silent.
+
+non_diegetic_music:
+N/A

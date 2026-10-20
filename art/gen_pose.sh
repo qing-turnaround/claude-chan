@@ -1,0 +1,5 @@
+#!/bin/bash
+name="$1"; pose="$2"
+P="Use the reference image ONLY for character identity and art style: the same chibi girl with the same face, same messy short terracotta-orange hair with a long ahoge antenna whose tip ends in a floating orange starburst spark, the cream starburst hair clip, orange over-ear headphones with spark pattern, oversized cream hoodie with a big orange starburst logo on the chest and on the sleeves, backpack straps, black shorts, white socks and fluffy sheep slippers. Same chibi proportions (about 2.5 heads tall), same clean lineart and soft cel shading. NEW POSE: $pose Full body, the whole character visible with generous margin on all sides, centered, one character only. Background: solid flat pure chroma green (#00D63C) filling the entire image, no floor, no cast shadow, no gradient, no text."
+HTTPS_PROXY=http://127.0.0.1:7898 HTTP_PROXY=http://127.0.0.1:7898 python -u ~/.claude/tools/image_gen2.py edit "$P" -o "raw/$name.png" -i ref_C_main.png --fidelity high --size 1024x1536 --quality high > "raw/$name.log" 2>&1
+echo "$name exit=$?"
