@@ -13,8 +13,8 @@ SRC = {  # output name -> source image
     'done': 'done', 'walk': 'walk', 'drag': 'drag2', 'work': 'work', 'eat': 'eat', 'sleep': 'sleep', 'pout': 'pout',
 }
 ASSETS = os.path.join(os.path.dirname(__file__), '..', 'app', 'assets', 'skins')
-HAIR_PX = 300   # hair width after normalization (px); scaled down 2x again at display time
-IDLE_H = 699    # height of the hoodie idle image; other outfits are aligned to it as a set
+HAIR_PX = 300   # hair width used to measure; the set is then scaled so idle is IDLE_H tall
+IDLE_H = 350    # height of the hoodie idle image; other outfits are aligned to it as a set (renderer DISPLAY 0.6)
 
 
 def key(rgb):

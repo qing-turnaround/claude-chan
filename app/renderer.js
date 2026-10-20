@@ -1,6 +1,6 @@
 // Sprites: transparent WebP, feet on the bottom edge of the image. Assets are already normalized by hair width, so just multiply everything by DISPLAY when drawing
 // One directory per outfit, assets/skins/<skin>/, with identical file names inside
-const DISPLAY = 0.3;
+const DISPLAY = 0.6;   // assets are stored at about 1.7x their 100% size, enough for 150% DPI
 const STILLS = ['idle', 'blink', 'happy', 'think', 'wait', 'done', 'walk0', 'walk1', 'walk2', 'walk3', 'drag', 'work', 'eat', 'sleep', 'pout'];
 let SPRITES = {}, skin = 'hoodie';
 // Per state: which image, which effect, how long (ms; 0 = lasts until interrupted by another).

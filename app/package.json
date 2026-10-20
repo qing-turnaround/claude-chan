@@ -64,6 +64,12 @@
         "zh_TW",
         "ja_JP"
       ]
-    }
+    },
+    "electronLanguages": [
+      "en-US",
+      "zh-CN",
+      "zh-TW",
+      "ja"
+    ]
   }
 }
