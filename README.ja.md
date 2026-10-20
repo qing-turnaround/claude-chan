@@ -62,9 +62,20 @@ Claude Code が許可を求めると、彼女の横にカードが出ます。�
 
 ## インストール
 
-**Windows**（10 / 11）：[Releases](../../releases) から `Claude-chan-Setup-x.y.z.exe` をダウンロードして実行してください。インストーラーはまだコード署名されていないため、「Windows によって PC が保護されました」と表示されることがあります。**詳細情報 → 実行** を押してください。
+[Releases](../../releases) からダウンロード：
 
-**macOS / Linux**：未対応です。コードの大部分は共通ですが、ビルドもテストもまだです（Linux では透明ウィンドウのクリック透過を Electron がサポートしていません）。
+| | ファイル |
+|---|---|
+| **Windows** 10 / 11 | `Claude-chan-Setup-x.y.z-x64.exe`（ARM PC は `-arm64.exe`） |
+| **macOS**（Apple シリコン） | `Claude-chan-x.y.z-arm64.dmg` |
+| **macOS**（Intel） | `Claude-chan-x.y.z-x64.dmg` |
+| **Linux** | `Claude-chan-x.y.z-x86_64.AppImage` または `Claude-chan-x.y.z-amd64.deb` |
+
+まだ Microsoft / Apple の署名がありません：
+
+- **Windows**：「Windows によって PC が保護されました」と出たら **詳細情報 → 実行**。
+- **macOS**：初回はブロックされます。**システム設定 → プライバシーとセキュリティ** で **このまま開く** を押すか、`xattr -dr com.apple.quarantine /Applications/Claude-chan.app` を実行してください。
+- **Linux**：AppImage は `chmod +x` してから実行、または `sudo apt install ./Claude-chan-*.deb`。透過にはコンポジタが必要です。Wayland では XWayland 経由で動きます。Linux の Electron はピクセル単位のクリック透過ができないため、キャラクターまわりの小さな枠がマウスを受け取ります。スタートアップ起動は使えません。
 
 承認カードには Claude Code **2.1.113 以降** が必要です（それより古いバージョンでは、ペットを閉じているときに権限 hook の失敗が拒否扱いになります）。
 

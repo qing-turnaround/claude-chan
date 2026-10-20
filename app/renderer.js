@@ -388,3 +388,21 @@ window.pet.on('skin', async (name) => {
   setMode('idle');
   blinkLoop();
 })();
+
+// Linux: no click-through forwarding there, so the window is shaped to a padded box around what's on screen
+// (her, the "!" bubble, any hearts / sparkles), refreshed 10 times a second. Clicks outside it pass through.
+if (window.pet.platform === 'linux') {
+  let last = '';
+  setInterval(() => {
+    const boxes = [img, bubble, ...fx.children].filter((el) => el && !el.hidden && el.offsetParent !== null)
+      .map((el) => el.getBoundingClientRect()).filter((r) => r.width && r.height);
+    if (!boxes.length) return;
+    const pad = 12;
+    const x0 = Math.max(0, Math.floor(Math.min(...boxes.map((r) => r.left)) - pad));
+    const y0 = Math.max(0, Math.floor(Math.min(...boxes.map((r) => r.top)) - pad));
+    const x1 = Math.min(innerWidth, Math.ceil(Math.max(...boxes.map((r) => r.right)) + pad));
+    const y1 = Math.min(innerHeight, Math.ceil(Math.max(...boxes.map((r) => r.bottom)) + pad));
+    const key = [x0, y0, x1, y1].join();
+    if (key !== last) { last = key; window.pet.shape([{ x: x0, y: y0, width: x1 - x0, height: y1 - y0 }]); }
+  }, 100);
+}

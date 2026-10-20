@@ -1,0 +1,91 @@
+name: Build & Release
+
+# Push a tag like v0.2.0: builds Windows (x64, arm64), macOS (arm64, x64) and Linux (x64) installers,
+# smoke-tests each packaged app, and attaches everything to a draft release for that tag.
+on:
+  push:
+    tags: ["v*"]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: windows-latest
+            target: --win
+            exe: dist/win-unpacked/Claude-chan.exe
+          - os: macos-latest
+            target: --mac
+            exe: dist/mac-arm64/Claude-chan.app/Contents/MacOS/Claude-chan
+          - os: ubuntu-latest
+            target: --linux
+            exe: dist/linux-unpacked/claude-chan
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 60
+    defaults:
+      run:
+        working-directory: app
+        shell: bash
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: app/package-lock.json
+      - run: npm ci
+      - name: Build
+        run: npx electron-builder ${{ matrix.target }} --publish never
+        env:
+          CSC_IDENTITY_AUTO_DISCOVERY: "false"
+      - name: Linux test dependencies
+        if: runner.os == 'Linux'
+        working-directory: .
+        run: sudo apt-get update && sudo apt-get install -y xvfb libnss3 libgbm1 && (sudo apt-get install -y libasound2t64 || sudo apt-get install -y libasound2)
+      - name: Smoke test
+        env:
+          PET_DEBUG: "1"
+        run: |
+          if [ "$RUNNER_OS" = "Linux" ]; then
+            xvfb-run -a -s "-screen 0 1600x1000x24" bash ../scripts/smoke.sh ${{ matrix.exe }} --no-sandbox
+          else
+            bash ../scripts/smoke.sh "${{ matrix.exe }}"
+          fi
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: smoke-${{ runner.os }}
+          path: app/smoke/
+      - uses: actions/upload-artifact@v4
+        with:
+          name: installers-${{ runner.os }}
+          path: |
+            app/dist/*.exe
+            app/dist/*.dmg
+            app/dist/*.zip
+            app/dist/*.AppImage
+            app/dist/*.deb
+          if-no-files-found: error
+
+  release:
+    needs: build
+    if: startsWith(github.ref, 'refs/tags/')
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: installers-*
+          path: out
+          merge-multiple: true
+      - name: Draft release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          ls -la out
+          gh release create "$GITHUB_REF_NAME" out/* --repo "$GITHUB_REPOSITORY" --draft \
+            --title "Claude-chan $GITHUB_REF_NAME" --notes "Draft: notes to follow."

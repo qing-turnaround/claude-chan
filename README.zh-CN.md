@@ -62,9 +62,20 @@ Claude Code 要权限时，她旁边会弹出一张卡片，写着要执行的�
 
 ## 安装
 
-**Windows**（10 / 11）：下载 [Releases](../../releases) 里的 `Claude-chan-Setup-x.y.z.exe` 安装。安装包暂时没有代码签名，Windows 可能提示「Windows 已保护你的电脑」，点 **更多信息 → 仍要运行**。
+从 [Releases](../../releases) 下载：
 
-**macOS / Linux**：暂不支持。代码大部分是通用的，但还没有打包，也没在这两个系统上测过（Linux 上 Electron 不支持透明窗口的点击穿透）。
+| | 文件 |
+|---|---|
+| **Windows** 10 / 11 | `Claude-chan-Setup-x.y.z-x64.exe`（ARM 电脑用 `-arm64.exe`） |
+| **macOS**（M 系列芯片） | `Claude-chan-x.y.z-arm64.dmg` |
+| **macOS**（Intel） | `Claude-chan-x.y.z-x64.dmg` |
+| **Linux** | `Claude-chan-x.y.z-x86_64.AppImage` 或 `Claude-chan-x.y.z-amd64.deb` |
+
+安装包暂时没有微软 / 苹果的签名：
+
+- **Windows**：可能提示「Windows 已保护你的电脑」，点 **更多信息 → 仍要运行**。
+- **macOS**：第一次打开会被拦。到 **系统设置 → 隐私与安全性** 点 **仍要打开**，或者运行 `xattr -dr com.apple.quarantine /Applications/Claude-chan.app`。
+- **Linux**：AppImage 先 `chmod +x` 再运行，或者 `sudo apt install ./Claude-chan-*.deb`。透明效果需要开了合成器的桌面；Wayland 下会自动走 XWayland。Linux 上 Electron 做不到按像素穿透点击，所以角色周围一个小方框会接住鼠标；也不支持开机自启。
 
 批准卡片需要 Claude Code **2.1.113 或更新**（更早的版本在桌宠没开时，会把权限 hook 连不上当成拒绝）。
 

@@ -7,6 +7,17 @@ const http = require('http');
 const path = require('path');
 const fs = require('fs');
 
+// Platforms. Linux can't forward mouse moves through a click-through window (Electron's forward option is
+// Windows / macOS only), so there the pet window is shaped to a box around the character instead (see 'shape').
+const LINUX = process.platform === 'linux', MAC = process.platform === 'darwin';
+// Native Wayland ignores window positions and hides the global cursor: the pet couldn't walk or be dragged.
+// Ozone is chosen before this script runs, so relaunch once under XWayland when an X server is there.
+if (LINUX && process.env.WAYLAND_DISPLAY && process.env.DISPLAY && !process.argv.some(a => a.startsWith('--ozone-platform'))) {
+  app.relaunch({ args: process.argv.slice(1).concat('--ozone-platform=x11') });
+  app.exit(0);
+}
+if (LINUX) app.commandLine.appendSwitch('enable-transparent-visuals');
+
 const PORT = 47823;
 const SIZE_MIN = 0.5, SIZE_MAX = 2;   // size is a free multiplier, set with the slider in Settings
 const BASE_W = 300, BASE_H = 320;
@@ -48,13 +59,17 @@ function createWindow() {
     webPreferences: { preload: path.join(__dirname, 'preload.js') },
   });
   win.setAlwaysOnTop(true, 'screen-saver');
-  win.setIgnoreMouseEvents(true, { forward: true });
+  if (MAC) win.setVisibleOnAllWorkspaces(true, { visibleOnFullScreen: true });   // stays when you switch Spaces
+  if (!LINUX) win.setIgnoreMouseEvents(true, { forward: true });
   win.loadFile('index.html');
   win.webContents.on('did-finish-load', () => win.webContents.send('scale', scale()));
 }
 
 // ---------- Mouse click-through: only take over when the click lands on a character pixel ----------
+// Linux: the window only exists (for drawing and for the mouse) inside these rectangles
+ipcMain.on('shape', (_e, rects) => { if (LINUX && win && !win.isDestroyed()) win.setShape(rects); });
 ipcMain.on('hit', (_e, over) => {
+  if (LINUX) return;
   if (process.env.PET_DEBUG) console.log('[hit]', over);
   if (drag) return;
   win.setIgnoreMouseEvents(!over, { forward: true });
@@ -203,7 +218,7 @@ function settingsState() {
     outfits: SKINS.filter(k => fs.existsSync(path.join(__dirname, 'assets', 'skins', k, 'idle.webp'))).concat('clawd'),
     skin: settings.skin, clawd: clawdKinds(), size: scale(), sizeMin: SIZE_MIN, sizeMax: SIZE_MAX,
     roam: settings.roam, link: claude.isInstalled(), login: app.getLoginItemSettings(loginOpts()).openAtLogin,
-    lang: i18n.LANGS.includes(settings.lang) ? settings.lang : 'auto', version: app.getVersion(),
+    lang: i18n.LANGS.includes(settings.lang) ? settings.lang : 'auto', version: app.getVersion(), canLogin: !LINUX,
   };
 }
 

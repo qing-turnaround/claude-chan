@@ -58,6 +58,7 @@ function render(s) {
   paintSlider();
 
   $('roam').checked = s.roam; $('link').checked = s.link; $('login').checked = s.login;
+  $('login').closest('.row').style.display = s.canLogin ? '' : 'none';
   $('lang').replaceChildren(...[['auto', T.auto], ...s.langs].map(([k, label]) => {
     const o = document.createElement('option'); o.value = k; o.textContent = label; o.selected = s.lang === k; return o;
   }));

@@ -7,4 +7,6 @@ contextBridge.exposeInMainWorld('critter', {
   down: () => ipcRenderer.send('critter-down'),
   up: () => ipcRenderer.send('critter-up'),
   menu: () => ipcRenderer.send('critter-menu'),
+  platform: process.platform,
+  shape: (rects) => ipcRenderer.send('critter-shape', rects),
 });

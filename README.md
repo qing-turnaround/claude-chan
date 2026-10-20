@@ -62,9 +62,20 @@ Right-click → **Outfit** to switch. Every outfit has the full set of poses, wa
 
 ## Install
 
-**Windows** (10 / 11): download `Claude-chan-Setup-x.y.z.exe` from [Releases](../../releases) and run it. The installer isn't code-signed yet, so Windows SmartScreen may say "Windows protected your PC": click **More info → Run anyway**.
+Download from [Releases](../../releases):
 
-**macOS / Linux**: not yet. The code is mostly portable, but there are no builds and it hasn't been tested there (on Linux, click-through on the transparent window isn't supported by Electron).
+| | File |
+|---|---|
+| **Windows** 10 / 11 | `Claude-chan-Setup-x.y.z-x64.exe` (`-arm64.exe` for ARM PCs) |
+| **macOS** (Apple silicon) | `Claude-chan-x.y.z-arm64.dmg` |
+| **macOS** (Intel) | `Claude-chan-x.y.z-x64.dmg` |
+| **Linux** | `Claude-chan-x.y.z-x86_64.AppImage` or `Claude-chan-x.y.z-amd64.deb` |
+
+The builds aren't signed by Microsoft / Apple yet:
+
+- **Windows**: SmartScreen may say "Windows protected your PC". Click **More info → Run anyway**.
+- **macOS**: the first open is blocked. Open **System Settings → Privacy & Security** and click **Open Anyway**, or run `xattr -dr com.apple.quarantine /Applications/Claude-chan.app`.
+- **Linux**: `chmod +x` the AppImage and run it, or `sudo apt install ./Claude-chan-*.deb`. A compositing desktop is needed for transparency. On Wayland it runs through XWayland. Electron can't pass clicks through per pixel on Linux, so a small box around the character catches the mouse; launch at startup isn't available there.
 
 Needs Claude Code **2.1.113 or newer** for the approval card (older versions turn a failed permission hook into a denial while the pet is closed).
 

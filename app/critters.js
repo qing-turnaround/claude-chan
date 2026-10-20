@@ -4,6 +4,7 @@
 // Off the perimeter (picked up, or falling) a critter is "free": a point with velocity under gravity.
 const { BrowserWindow, ipcMain, screen, powerMonitor } = require('electron');
 const path = require('path');
+const LINUX = process.platform === 'linux';   // no click-through forwarding: windows are shaped instead (critter-shape)
 
 const WIN = 112;           // window size (logical px); room above the head for the heart / "!" bubble
 const INSET = 32;          // window centre sits this far from the wall: the feet end 31 px below centre
@@ -84,7 +85,10 @@ function create(kind) {
     webPreferences: { preload: path.join(__dirname, 'critter-preload.js'), backgroundThrottling: false },
   });
   w.setAlwaysOnTop(true, 'screen-saver');
-  w.setIgnoreMouseEvents(true, { forward: true });
+  if (process.platform === 'darwin') w.setVisibleOnAllWorkspaces(true, { visibleOnFullScreen: true });
+  // the pile never takes the mouse; on Linux the Clawds take it inside their shape, elsewhere per pixel
+  if (kind === 'blocks') w.setIgnoreMouseEvents(true);
+  else if (!LINUX) w.setIgnoreMouseEvents(true, { forward: true });
   w.loadFile('critter.html', { query: { kind } });
   return w;
 }
@@ -119,7 +123,7 @@ function centre(k) {
 function release(k) {
   const st = C[k], f = st.free, { x0, x1, y0 } = room();
   st.drag = false; st.press = null;
-  if (st.win && !st.win.isDestroyed()) { st.win.setIgnoreMouseEvents(true, { forward: true }); st.win.webContents.send('reset-hit'); }
+  if (st.win && !st.win.isDestroyed()) { if (!LINUX) st.win.setIgnoreMouseEvents(true, { forward: true }); st.win.webContents.send('reset-hit'); }
   const n = st.trail.length - 1;
   f.vx = n > 0 ? Math.max(-25, Math.min(25, (st.trail[n].x - st.trail[0].x) / n)) : 0;
   f.vy = n > 0 ? Math.max(-25, Math.min(25, (st.trail[n].y - st.trail[0].y) / n)) : 0;
@@ -358,6 +362,7 @@ function tick() {
       const r = (-p.angle * Math.PI) / 180;
       look = { x: ((dx * Math.cos(r) - dy * Math.sin(r)) / dist) * st.dir, y: (dx * Math.sin(r) + dy * Math.cos(r)) / dist, near: dist < 75 };
     }
+    if (st.win.webContents.isDestroyed() || st.win.webContents.isCrashed()) continue;   // closing down
     st.win.webContents.send('pose', {
       angle: p.angle, dir: st.dir, mode: st.mode, look, work: working, mug: now < st.mugUntil,
       cursor: { x: cur.x - Math.round(p.x - W / 2), y: cur.y - Math.round(p.y - W / 2) },   // in window px, for hit testing
@@ -410,7 +415,7 @@ function init({ pet, menu }) {
   const kindOf = (e) => active.find((x) => C[x].win && !C[x].win.isDestroyed() && C[x].win.webContents === e.sender);
   ipcMain.on('critter-hit', (e, over) => {
     const k = kindOf(e);
-    if (k && (C[k].press || C[k].drag)) return;          // keep the mouse while it's held
+    if (LINUX || (k && (C[k].press || C[k].drag))) return;   // keep the mouse while it's held
     const w = BrowserWindow.fromWebContents(e.sender);
     if (w) w.setIgnoreMouseEvents(!over, { forward: true });
   });
@@ -432,6 +437,10 @@ function init({ pet, menu }) {
     st.pokes = st.pokes.filter((t) => now - t < 4000).concat(now);
     if (st.pokes.length >= 4) { st.pokes = []; if (st.rideOn) dismount(k); setMode(k, 'angry', 2600); }
     else if (!waiting && st.mode !== 'angry' && !st.rideOn) setMode(k, 'hop', 900);
+  });
+  ipcMain.on('critter-shape', (e, rects) => {
+    const w = BrowserWindow.fromWebContents(e.sender);
+    if (LINUX && w && !w.isDestroyed()) w.setShape(rects);
   });
   ipcMain.on('critter-menu', (e) => onMenu(BrowserWindow.fromWebContents(e.sender)));
   setInterval(tick, 16);

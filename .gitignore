@@ -10,3 +10,4 @@ __pycache__/
 *.pyc
 设定图/
 scripts/record_demo.py
+app/smoke/

@@ -96,6 +96,7 @@ function refresh() {
       webPreferences: { preload: path.join(__dirname, 'approvals-preload.js') },
     });
     win.setAlwaysOnTop(true, 'screen-saver');
+    if (process.platform === 'darwin') win.setVisibleOnAllWorkspaces(true, { visibleOnFullScreen: true });
     win.loadFile('approvals.html');
     win.webContents.on('did-finish-load', () => { win.webContents.send('view', view()); });
     return;

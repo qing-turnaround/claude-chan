@@ -424,3 +424,21 @@ window.addEventListener('mousedown', (e) => { if (e.button === 0 && overLast) wi
 window.addEventListener('mouseup', (e) => { if (e.button === 0) window.critter.up(); });
 // right-click opens the same menu as Claude-chan's (she is hidden while this outfit is on)
 window.addEventListener('contextmenu', (e) => { e.preventDefault(); if (overLast) window.critter.menu(); });
+
+// Linux: shape the window to a padded box around the drawn pixels (no click-through forwarding there)
+if (window.critter.platform === 'linux' && KIND !== 'blocks') {
+  let last = '';
+  setInterval(() => {
+    const W = cv.width, H = cv.height, d = g.getImageData(0, 0, W, H).data;
+    let x0 = W, y0 = H, x1 = -1, y1 = -1;
+    for (let y = 0; y < H; y += 2) for (let x = 0; x < W; x += 2) {
+      if (d[(y * W + x) * 4 + 3] > 20) { if (x < x0) x0 = x; if (x > x1) x1 = x; if (y < y0) y0 = y; if (y > y1) y1 = y; }
+    }
+    if (x1 < 0) return;
+    const k = 1 / dpr, pad = 8, px = cv.clientWidth, py = cv.clientHeight;
+    const r = { x: Math.max(0, Math.floor(x0 * k - pad)), y: Math.max(0, Math.floor(y0 * k - pad)) };
+    r.width = Math.min(px, Math.ceil(x1 * k + pad)) - r.x; r.height = Math.min(py, Math.ceil(y1 * k + pad)) - r.y;
+    const key = [r.x, r.y, r.width, r.height].join();
+    if (key !== last) { last = key; window.critter.shape([r]); }
+  }, 100);
+}
