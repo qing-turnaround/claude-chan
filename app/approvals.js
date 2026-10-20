@@ -144,7 +144,16 @@ function sessionMoved(session) {
   pending.filter((e) => e.session === session).forEach((e) => reply(e, null));
 }
 
+// pat to approve: the oldest card, allowed once (never "always"); false if nothing is waiting
+function approveOldest() {
+  const e = pending[0];
+  if (!e) return false;
+  setTimeout(() => onDecided(e.session), 0);
+  reply(e, { behavior: 'allow' });
+  return true;
+}
+
 const count = () => pending.length;
 const relayout = () => { if (win && !win.isDestroyed() && win.isVisible()) win.webContents.send('view', view()); };
 
-module.exports = { init, add, sessionMoved, count, relayout };
+module.exports = { init, add, sessionMoved, count, relayout, approveOldest };

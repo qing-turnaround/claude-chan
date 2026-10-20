@@ -40,7 +40,7 @@ Running several sessions at once is fine: if any session is waiting for you, she
 
 ### Approve right from the pet
 
-When Claude Code asks for permission, a card pops up next to her: the command, or the file and the lines being changed. Click **Allow**, **Always allow** (with the rule Claude Code suggests) or **Deny**, without switching to the terminal. When Claude Code asks you a question, the card shows the options and you answer there. Answering in the terminal still works; the card goes away by itself, and if the pet isn't running Claude Code just asks in the terminal as usual.
+When Claude Code asks for permission, a card pops up next to her: the command, or the file and the lines being changed. Click **Allow**, **Always allow** (with the rule Claude Code suggests) or **Deny**, without switching to the terminal. When Claude Code asks you a question, the card shows the options and you answer there. Answering in the terminal still works; the card goes away by itself, and if the pet isn't running Claude Code just asks in the terminal as usual. Or just double-click her head while she raises her hand: that allows it once (you can turn this off in Settings).
 
 ## Also
 

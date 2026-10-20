@@ -24,7 +24,7 @@ const BASE_W = 300, BASE_H = 320;
 const SKINS = ['hoodie', 'scholar', 'maid', 'spirit'];
 
 const settingsFile = path.join(app.getPath('userData'), 'settings.json');
-let settings = { size: 1, roam: true, x: null, y: null, skin: 'hoodie', lang: 'auto', clawd: ['red', 'pink'] };
+let settings = { patApprove: true, size: 1, roam: true, x: null, y: null, skin: 'hoodie', lang: 'auto', clawd: ['red', 'pink'] };
 try { Object.assign(settings, JSON.parse(fs.readFileSync(settingsFile, 'utf8'))); } catch {}
 // older versions stored S / M / L
 if (typeof settings.size !== 'number') settings.size = { S: 0.75, M: 1, L: 1.35 }[settings.size] || 1;
@@ -205,6 +205,7 @@ function apply(key, v) {
     case 'roam': settings.roam = !!v; win.webContents.send('roam', settings.roam); critters.setRoam(settings.roam); break;
     case 'link': toggleHooks(!!v); break;
     case 'login': app.setLoginItemSettings({ ...loginOpts(), openAtLogin: !!v }); break;
+    case 'patApprove': settings.patApprove = !!v; break;
     case 'lang': settings.lang = i18n.LANGS.includes(v) ? v : 'auto'; break;
   }
   save();
@@ -218,7 +219,7 @@ function settingsState() {
     outfits: SKINS.filter(k => fs.existsSync(path.join(__dirname, 'assets', 'skins', k, 'idle.webp'))).concat('clawd'),
     skin: settings.skin, clawd: clawdKinds(), size: scale(), sizeMin: SIZE_MIN, sizeMax: SIZE_MAX,
     roam: settings.roam, link: claude.isInstalled(), login: app.getLoginItemSettings(loginOpts()).openAtLogin,
-    lang: i18n.LANGS.includes(settings.lang) ? settings.lang : 'auto', version: app.getVersion(), canLogin: !LINUX,
+    lang: i18n.LANGS.includes(settings.lang) ? settings.lang : 'auto', version: app.getVersion(), canLogin: !LINUX, patApprove: settings.patApprove !== false,
   };
 }
 
@@ -236,6 +237,9 @@ function openSettings() {
   settingsWin.once('ready-to-show', () => settingsWin.show());
 }
 ipcMain.handle('settings-state', () => settingsState());
+// double-click to approve: on the head of a pet raising its hand, allows the oldest pending request once
+const patApprove = () => settings.patApprove !== false && approvals.approveOldest();
+ipcMain.handle('pat-approve', () => patApprove());
 ipcMain.on('settings-set', (_e, key, v) => apply(key, v));
 // the window is exactly as tall as its content
 ipcMain.on('settings-height', (_e, h) => { if (settingsWin && !settingsWin.isDestroyed()) settingsWin.setContentSize(460, Math.min(900, Math.ceil(h))); });
@@ -363,7 +367,8 @@ http.createServer((req, res) => {
   } else if (req.url.startsWith('/critter-shot')) {   // debug
     critters.shot(req.url.split('?')[1] || 'red').then((img) => { res.setHeader('Content-Type', 'image/png'); res.end(img ? img.toPNG() : ''); });
   } else if (req.url.startsWith('/critter-mode')) {   // debug: force a pose for a few seconds
-    critters.debugMode(req.url.split('?')[1] || 'sleep'); res.end('ok');
+    const [mode, ms] = (req.url.split('?')[1] || 'sleep').split(':');      // e.g. walk:60000
+    critters.debugMode(mode, ms ? Number(ms) : undefined); res.end('ok');
   } else if (req.method === 'POST' && req.url.startsWith('/critter-drag')) {   // debug: body = JSON [[x,y],...]
     let body = '';
     req.on('data', c => body += c);
@@ -424,7 +429,7 @@ app.whenReady().then(() => {
   approvals.init({ pet: () => (win && !win.isDestroyed() && win.isVisible() ? win.getBounds() : null), text, decided: (id) => pushStatus(claude.resolved(id)) });
   // hooks put in by an older version (no approval card, no process id): bring them up to date
   try { if (claude.isInstalled() && !claude.isCurrent()) claude.install(); } catch {}
-  critters.init({ pet: () => (win && !win.isDestroyed() && win.isVisible() ? win.getBounds() : null), menu: popupMenu });
+  critters.init({ pet: () => (win && !win.isDestroyed() && win.isVisible() ? win.getBounds() : null), menu: popupMenu, approve: patApprove });
   if (settings.skin === 'clawd') applyOutfit();
 });
 app.on('window-all-closed', () => app.quit());

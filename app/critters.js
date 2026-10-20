@@ -362,7 +362,7 @@ function tick() {
         setMode(k, 'wave', 2200); st.waveCooldown = now + 45000;
       }
       // upside down on the ceiling, now and then a foot slips (roughly one crossing in four)
-      if (roam && p.edge === 'ceil' && Math.random() < 1.3e-4) setMode(k, 'slip', 700);
+      if (roam && p.edge === 'ceil' && now > (st.steady || 0) && Math.random() < 1.3e-4) setMode(k, 'slip', 700);
     }
   }
   if (working) workTick(now);
@@ -432,8 +432,9 @@ function show(kinds) {
   if (!active.length && pile.win && !pile.win.isDestroyed()) { pile.win.destroy(); pile.win = null; }
 }
 
-function init({ pet, menu }) {
-  getPet = pet; onMenu = menu;
+let onApprove = () => {};
+function init({ pet, menu, approve }) {
+  getPet = pet; onMenu = menu; onApprove = approve || onApprove;
   const kindOf = (e) => active.find((x) => C[x].win && !C[x].win.isDestroyed() && C[x].win.webContents === e.sender);
   ipcMain.on('critter-hit', (e, over) => {
     const k = kindOf(e);
@@ -454,8 +455,11 @@ function init({ pet, menu }) {
     if (st.drag) return release(k);
     if (!st.press) return;
     st.press = null;
-    // a click: hop; poked four times within a few seconds -> cross
+    // a click: hop; poked four times within a few seconds -> cross;
+    // while it raises its hand for approval, a double-click approves the request (once)
     const now = Date.now();
+    if (waiting && now - (st.lastClick || 0) < 450) { st.lastClick = 0; st.pokes = []; onApprove(); return; }
+    st.lastClick = now;
     st.pokes = st.pokes.filter((t) => now - t < 4000).concat(now);
     if (st.pokes.length >= 4) { st.pokes = []; if (st.rideOn) dismount(k); setMode(k, 'angry', 2600); }
     else if (!waiting && st.mode !== 'angry' && !st.rideOn) setMode(k, 'hop', 900);
@@ -475,7 +479,7 @@ function status(s) {
   const wasWaiting = waiting;
   waiting = s === 'wait';
   if (waiting) sleeping = false;
-  if (wasWaiting && !waiting) active.forEach((k) => { if (C[k].mode === 'wait') setMode(k, 'walk', 0); });
+  if (wasWaiting && !waiting) active.forEach((k) => { if (C[k].mode === 'wait') setMode(k, 'hop', 900); });   // answered: a little hop
   if (s === 'done') active.forEach((k) => { if (!busy(C[k])) setMode(k, 'cheer', 1000); });
 }
 
@@ -493,7 +497,7 @@ function debugMode(mode, ms = 6000) {
   active.forEach((k) => {
     if (mode === 'drop') { const p = centre(k); C[k].rideOn = null; C[k].free = { x: p.x, y: y0 + 250, vx: 0, vy: 0, a: 170, from: y0 + 250 }; setMode(k, 'fall', 1e12); }
     else if (mode === 'slip') { const { w, h } = room(); C[k].s = w + TURN + h + TURN + w * (k === 'red' ? 0.3 : 0.6); setMode(k, 'slip', 700); }
-    else { setMode(k, mode, ms); if (mode === 'walk') C[k].nextPause = Date.now() + ms; }   // walk: no rests for ms
+    else { setMode(k, mode, ms); if (mode === 'walk') C[k].nextPause = C[k].steady = Date.now() + ms; }   // walk: no rests, no slips for ms
   });
 }
 // debug: press on a critter, drag it along pts (one point per tick), let go
@@ -514,7 +518,10 @@ function debugDrag(k, pts) {
 function debugPlace(k, where) {
   if (!C[k]) return;
   const { x0, y0, w, h } = room();
-  const [edge, v] = String(where).includes(':') ? String(where).split(':') : ['floor', where], t = Number(v);
+  // where: 0.4 | edge:0.4 | edge:0.4:dir   (dir 1 = counter-clockwise, -1 = clockwise)
+  const parts = String(where).split(':');
+  const [edge, v, d] = parts.length > 1 ? parts : ['floor', parts[0]], t = Number(v);
+  if (d) C[k].dir = Number(d) < 0 ? -1 : 1;
   const x = x0 + w * t, y = y0 + h * t;
   C[k].free = null; C[k].rideOn = null; C[k].goal = null; C[k].s = sOn(edge, x, y); setMode(k, 'walk', 0);
 }

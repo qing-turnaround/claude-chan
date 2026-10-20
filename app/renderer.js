@@ -249,7 +249,7 @@ setInterval(async () => {
 }, 1000);
 
 // ---------- Mouse ----------
-let overLast = false, down = null, dragging = false, clicks = [];
+let overLast = false, down = null, dragging = false, clicks = [], lastHeadClick = 0;
 
 function overPixel(cx, cy) {
   const name = img.dataset.name, c = hitCanvas;
@@ -304,6 +304,10 @@ window.addEventListener('mouseup', (e) => {
   else if (down) {
     const now = Date.now();
     lastInteract = now;
+    // raising her hand for approval: a double-click on her head approves the request (once)
+    const r = img.getBoundingClientRect(), onHead = e.clientY < r.top + r.height * 0.4;
+    if (mode === 'wait' && onHead && now - lastHeadClick < 450) { lastHeadClick = 0; burst('❤', 3); window.pet.patApprove(); down = null; return; }
+    lastHeadClick = onHead ? now : 0;
     clicks = clicks.filter(t => now - t < 3000); clicks.push(now);
     if (clicks.length >= 5 && mode !== 'wait' && mode !== 'work') {   // poked too many times -> pout
       clicks = []; setMode('pout'); burst('💢', 1);

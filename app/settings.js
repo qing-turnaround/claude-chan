@@ -32,7 +32,7 @@ function render(s) {
   $('ver').textContent = 'v' + s.version;
   for (const [id, text] of [['secLook', T.secLook], ['secMove', T.secMove], ['secGeneral', T.secGeneral],
     ['who', T.who], ['sizeLabel', T.size], ['roamLabel', T.roam], ['roamHint', T.roamHint],
-    ['linkLabel', T.link], ['linkHint', T.linkHint], ['loginLabel', T.login], ['langLabel', T.language]]) $(id).textContent = text;
+    ['linkLabel', T.link], ['linkHint', T.linkHint], ['patLabel', T.pat], ['patHint', T.patHint], ['loginLabel', T.login], ['langLabel', T.language]]) $(id).textContent = text;
   $('reset').title = T.reset;
 
   $('outfits').replaceChildren(...s.outfits.map((k) => {
@@ -57,7 +57,7 @@ function render(s) {
   if (!dragging) size.value = s.size;
   paintSlider();
 
-  $('roam').checked = s.roam; $('link').checked = s.link; $('login').checked = s.login;
+  $('roam').checked = s.roam; $('link').checked = s.link; $('login').checked = s.login; $('pat').checked = s.patApprove;
   $('login').closest('.row').style.display = s.canLogin ? '' : 'none';
   $('lang').replaceChildren(...[['auto', T.auto], ...s.langs].map(([k, label]) => {
     const o = document.createElement('option'); o.value = k; o.textContent = label; o.selected = s.lang === k; return o;
@@ -77,6 +77,7 @@ $('reset').onclick = () => api.set('size', 1);
 $('roam').onchange = (e) => api.set('roam', e.target.checked);
 $('link').onchange = (e) => api.set('link', e.target.checked);
 $('login').onchange = (e) => api.set('login', e.target.checked);
+$('pat').onchange = (e) => api.set('patApprove', e.target.checked);
 $('lang').onchange = (e) => api.set('lang', e.target.value);
 
 api.onChanged(render);

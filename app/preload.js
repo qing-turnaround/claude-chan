@@ -8,6 +8,7 @@ contextBridge.exposeInMainWorld('pet', {
   dragEnd: () => ipcRenderer.send('drag-end'),
   walk: (dir) => ipcRenderer.send('walk', dir),
   menu: () => ipcRenderer.send('menu'),
+  patApprove: () => ipcRenderer.invoke('pat-approve'),
   settings: () => ipcRenderer.invoke('settings'),
   idleSeconds: () => ipcRenderer.invoke('idle-seconds'),
   cursor: () => ipcRenderer.invoke('cursor'),
