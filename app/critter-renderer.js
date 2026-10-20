@@ -55,7 +55,7 @@ function faceFor(m, now) {
     case 'wait': return { eyes: 'round', mouth: 'o' };
     case 'cheer': return { eyes: 'star', mouth: 'grin' };
     case 'hop': case 'wave': case 'chase': return { eyes: 'happy', mouth: 'grin' };
-    case 'meet': case 'ride': return { eyes: 'happy', mouth: 'smile', blush: true };
+    case 'meet': case 'ride': case 'hold': return { eyes: 'happy', mouth: 'smile', blush: true };
     case 'carry': return { eyes: 'shut', mouth: 'flat', sweat: true };
     case 'held': case 'slip': case 'fall': case 'land': return { eyes: 'xx', mouth: 'o' };
     case 'flee': return { eyes: 'xx', mouth: 'grin' };
@@ -258,6 +258,13 @@ function draw() {
   };
   if (m === 'type') {
     // arms reach forward to the keyboard: the hands are drawn on the laptop
+  } else if (m === 'hold') {
+    // one arm straight out towards the partner, at hand height; the other hangs as usual
+    const reach = pose.hand === 'front' ? 1 : -1;
+    arm(-reach, 0);
+    g.save(); g.translate(reach * 24, 4);
+    poly([[0, -4], [reach * 15, -3], [reach * 15, 4], [0, 4]], L.body, 68);
+    g.restore();
   } else if (m === 'rally') {               // waving a little flag
     arm(-1, 0);
     const a = -1.0 + Math.sin(now / 130) * 0.45;

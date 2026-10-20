@@ -63,14 +63,15 @@
       "perMachine": false,
       "allowToChangeInstallationDirectory": true,
       "shortcutName": "Claude-chan",
-      "artifactName": "Claude-chan-Setup-${version}.exe",
+      "artifactName": "Claude-chan-Setup-${version}-${arch}.${ext}",
       "multiLanguageInstaller": true,
       "installerLanguages": [
         "en_US",
         "zh_CN",
         "zh_TW",
         "ja_JP"
-      ]
+      ],
+      "buildUniversalInstaller": false
     },
     "electronLanguages": [
       "en-US",

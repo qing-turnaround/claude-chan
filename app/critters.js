@@ -14,7 +14,8 @@ const GRAVITY = 0.55;      // px per tick², free fall
 const STICK = 40;          // released this close to a wall / the ceiling -> grab on instead of falling
 const RIDE = 43;           // rider's centre above the carrier's centre (feet on its head)
 const KINDS = ['red', 'pink'];
-const SPEEDS = { walk: SPEED, chase: 2.0, flee: 1.7, carry: 0.5, run: 1.7, haul: 1.2, fetch: 1.2 };
+const SPEEDS = { walk: SPEED, chase: 2.0, flee: 1.7, carry: 0.5, run: 1.7, haul: 1.2, fetch: 1.2, hold: 0.6 };
+const HOLD_GAP = 78;      // centre to centre while holding hands: body half-width 25 + a reach of 14, each side
 // idle: short walks between rests, so they spend well under half the time walking
 const RESTS = [['look', 2000, 4000], ['sit', 5000, 12000], ['stretch', 2400, 2400], ['doze', 6000, 12000]];
 const WORKING = ['type', 'rally', 'run', 'haul', 'fetch', 'brew'];   // modes that belong to the work routine
@@ -24,6 +25,7 @@ let active = [], getPet = () => null, onMenu = () => {}, waiting = false;
 let SC = 1;                // size multiplier from the settings; every length above scales with it
 let roam = true;           // off: they stay where they are (drag them anywhere) and only react to Claude Code
 let sleeping = false, meetCooldown = 0, chaseCooldown = Date.now() + 40000;
+let holdAfterMeet = false, holdLead = null;   // hand in hand: the one in front leads, the other keeps HOLD_GAP behind
 // Claude Code working: one Clawd types, the other (if out) helps: cheers it on, fetches coffee, and hauls a
 // code block to a pile next to it for every step Claude Code finishes. The pile sparkles away when it's done.
 let working = false, queue = 0, coffeeNext = 0;
@@ -173,6 +175,18 @@ function startRide(rider) {
   if (C[rider].win && !C[rider].win.isDestroyed()) C[rider].win.moveTop();
 }
 
+// walk off hand in hand, side by side, both facing the same way
+function startHold() {
+  if (active.length < 2) return;
+  const dir = Math.random() < 0.5 ? 1 : -1, R = C.red, K = C.pink;
+  holdLead = along(R.s, K.s) * dir > 0 ? 'pink' : 'red';          // whoever is already in front
+  R.dir = K.dir = dir;
+  C[other(holdLead)].s = C[holdLead].s - dir * HOLD_GAP * SC;
+  const ms = rand(4500, 7000);
+  setMode('red', 'hold', ms); setMode('pink', 'hold', ms);
+  meetCooldown = Date.now() + 30000;
+}
+
 function dismount(k) {
   const st = C[k], c = C[st.rideOn];
   st.s = c.s - c.dir * 50; st.dir = c.dir; st.rideOn = null;
@@ -198,7 +212,9 @@ function pairs(now, P) {
     R.dir = ahead; K.dir = -ahead;
     setMode('red', 'meet', 2600); setMode('pink', 'meet', 2600);
     meetCooldown = now + 30000;
-    if (Math.random() < 0.4) C[Math.random() < 0.5 ? 'red' : 'pink'].stackAfterMeet = true;
+    const r = Math.random();
+    if (r < 0.35) holdAfterMeet = true;
+    else if (r < 0.7) C[Math.random() < 0.5 ? 'red' : 'pink'].stackAfterMeet = true;
     return;
   }
   // now and then one starts chasing the other when they're fairly close
@@ -310,11 +326,16 @@ function tick() {
       }
       if (was === 'land' && st.afterLand) { setMode(k, st.afterLand, 2000); st.afterLand = null; continue; }
       if (st.after) { const f = st.after; st.after = null; f(); continue; }
+      if (was === 'meet' && holdAfterMeet) { holdAfterMeet = false; startHold(); continue; }
+      if (was === 'hold') { if (k !== holdLead) st.dir = -st.dir; if (k === 'pink') holdLead = null; }   // let go, part ways
       if (was === 'meet' && st.stackAfterMeet) { st.stackAfterMeet = false; startRide(k); continue; }
       if (was === 'meet' && k === 'pink' && !C.pink.rideOn && !(C.red && C.red.rideOn)) st.dir = -st.dir;   // one turns back
       st.mode = 'walk'; st.nextPause = now + rand(2500, 6000);
     }
     if (st.rideOn) continue;              // carried: position comes from the carrier
+    if (st.mode === 'hold' && holdLead && k !== holdLead && C[holdLead].mode === 'hold') {   // follows its partner's hand
+      st.s = C[holdLead].s - st.dir * HOLD_GAP * SC; continue;
+    }
     const speed = roam ? SPEEDS[st.mode] : 0;
     if (speed && st.goal) {                                    // heading somewhere on an errand
       const d = along(st.s, st.goal.s);
@@ -365,6 +386,7 @@ function tick() {
     if (st.win.webContents.isDestroyed() || st.win.webContents.isCrashed()) continue;   // closing down
     st.win.webContents.send('pose', {
       angle: p.angle, dir: st.dir, mode: st.mode, look, work: working, mug: now < st.mugUntil,
+      hand: st.mode === 'hold' ? (k === holdLead ? 'back' : 'front') : null,
       cursor: { x: cur.x - Math.round(p.x - W / 2), y: cur.y - Math.round(p.y - W / 2) },   // in window px, for hit testing
       moving: roam && SPEEDS[st.mode] !== undefined && !st.rideOn, scale: SC,
     });
@@ -466,11 +488,12 @@ const shot = (k) => { const w = k === 'blocks' ? pile.win : C[k] && C[k].win; re
 function debugMode(mode, ms = 6000) {
   const { y0 } = room();
   if (mode === 'ride') { if (active.length === 2) startRide('pink'); return; }
+  if (mode === 'hold') { startHold(); return; }
   if (mode === 'chase') { if (active.length === 2) { setMode('red', 'chase', ms); setMode('pink', 'flee', ms); } return; }
   active.forEach((k) => {
     if (mode === 'drop') { const p = centre(k); C[k].rideOn = null; C[k].free = { x: p.x, y: y0 + 250, vx: 0, vy: 0, a: 170, from: y0 + 250 }; setMode(k, 'fall', 1e12); }
     else if (mode === 'slip') { const { w, h } = room(); C[k].s = w + TURN + h + TURN + w * (k === 'red' ? 0.3 : 0.6); setMode(k, 'slip', 700); }
-    else setMode(k, mode, ms);
+    else { setMode(k, mode, ms); if (mode === 'walk') C[k].nextPause = Date.now() + ms; }   // walk: no rests for ms
   });
 }
 // debug: press on a critter, drag it along pts (one point per tick), let go
@@ -488,10 +511,12 @@ function debugDrag(k, pts) {
   }, 16);
 }
 // debug: put a Clawd on the floor at a fraction of the screen width
-function debugPlace(k, fx) {
+function debugPlace(k, where) {
   if (!C[k]) return;
-  const { x0, w } = room();
-  C[k].free = null; C[k].rideOn = null; C[k].goal = null; C[k].s = sOn('floor', x0 + w * fx, 0); setMode(k, 'walk', 0);
+  const { x0, y0, w, h } = room();
+  const [edge, v] = String(where).includes(':') ? String(where).split(':') : ['floor', where], t = Number(v);
+  const x = x0 + w * t, y = y0 + h * t;
+  C[k].free = null; C[k].rideOn = null; C[k].goal = null; C[k].s = sOn(edge, x, y); setMode(k, 'walk', 0);
 }
 const debugState = () => active.map((k) => ({ kind: k, mode: C[k].mode, dir: C[k].dir, free: C[k].free, rideOn: C[k].rideOn, pos: centre(k) }));
 

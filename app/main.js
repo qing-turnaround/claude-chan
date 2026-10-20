@@ -405,7 +405,7 @@ http.createServer((req, res) => {
   } else if (req.url === '/sessions') {   // debug
     res.end(JSON.stringify(claude.list()));
   } else if (req.url.startsWith('/critter-place')) {   // debug: ?red=0.3&pink=0.5 (floor, fraction of width)
-    for (const [k, v] of new URLSearchParams(req.url.split('?')[1] || '')) critters.debugPlace(k, Number(v));
+    for (const [k, v] of new URLSearchParams(req.url.split('?')[1] || '')) critters.debugPlace(k, v);
     res.end('ok');
   } else if (req.url === '/critters') {
     res.end(JSON.stringify(critters.debugState()));
