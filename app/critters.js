@@ -373,9 +373,9 @@ function tick() {
 
 // the pile of code blocks next to the one typing
 function drawPile(now) {
+  if (!working && now >= pile.flashUntil) pile.count = 0;      // the finished pile is gone once its sparkle ends
   if (!active.length || !(pile.count > 0 || now < pile.flashUntil)) {
     if (pile.win && !pile.win.isDestroyed() && pile.win.isVisible()) pile.win.hide();
-    if (!working && now >= pile.flashUntil) pile.count = 0;
     return;
   }
   if (!pile.win || pile.win.isDestroyed()) pile.win = create('blocks');
@@ -487,6 +487,12 @@ function debugDrag(k, pts) {
     fakeCursor = null;
   }, 16);
 }
+// debug: put a Clawd on the floor at a fraction of the screen width
+function debugPlace(k, fx) {
+  if (!C[k]) return;
+  const { x0, w } = room();
+  C[k].free = null; C[k].rideOn = null; C[k].goal = null; C[k].s = sOn('floor', x0 + w * fx, 0); setMode(k, 'walk', 0);
+}
 const debugState = () => active.map((k) => ({ kind: k, mode: C[k].mode, dir: C[k].dir, free: C[k].free, rideOn: C[k].rideOn, pos: centre(k) }));
 
-module.exports = { init, show, setScale, setRoam, status, pulse, shot, debugState, debugMode, debugDrag };
+module.exports = { debugPlace, init, show, setScale, setRoam, status, pulse, shot, debugState, debugMode, debugDrag };

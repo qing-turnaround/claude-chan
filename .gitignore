@@ -11,3 +11,4 @@ __pycache__/
 设定图/
 scripts/record_demo.py
 app/smoke/
+scripts/record_v2.py

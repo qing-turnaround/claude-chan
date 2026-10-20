@@ -93,7 +93,7 @@ function refresh() {
       icon: path.join(__dirname, 'assets', 'icon.png'),
       width: W, height: 160, transparent: true, frame: false, resizable: false, hasShadow: false,
       alwaysOnTop: true, skipTaskbar: true, show: false, backgroundColor: '#00000000',
-      webPreferences: { preload: path.join(__dirname, 'approvals-preload.js') },
+      webPreferences: { preload: path.join(__dirname, 'approvals-preload.js'), backgroundThrottling: false },
     });
     win.setAlwaysOnTop(true, 'screen-saver');
     if (process.platform === 'darwin') win.setVisibleOnAllWorkspaces(true, { visibleOnFullScreen: true });
@@ -109,7 +109,7 @@ function init({ pet, text, decided }) {
   ipcMain.on('approvals-height', (_e, h) => {
     place(h);
     // shown without taking focus, so typing in the terminal isn't interrupted
-    if (pending.length && win && !win.isVisible()) win.showInactive();
+    if (pending.length && win && !win.isVisible()) { win.showInactive(); win.moveTop(); }   // above the pet, which it may overlap
   });
   ipcMain.on('approvals-decide', (_e, id, choice, extra) => {
     const e = pending.find((x) => x.id === id);

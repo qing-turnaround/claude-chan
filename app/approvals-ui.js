@@ -98,5 +98,7 @@ window.approvals.onView(({ T, items }) => {
     card.append(btns);
     return card;
   }));
-  requestAnimationFrame(() => window.approvals.height(document.body.scrollHeight));
+  // a timer, not requestAnimationFrame: this window is hidden between cards, and Chromium pauses rAF in hidden
+  // windows, so the next card would never report its height and never be shown
+  setTimeout(() => window.approvals.height(document.body.scrollHeight), 0);
 });

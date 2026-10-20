@@ -88,6 +88,7 @@ function aggregate() {
 // Recording/demo aid: when set, only events from sessions under this directory count
 let focusCwd = null;
 function setFocus(dir) { focusCwd = dir ? path.resolve(dir).toLowerCase() : null; sessions.clear(); }
+const inFocus = (payload) => !focusCwd || path.resolve(payload.cwd || '').toLowerCase().startsWith(focusCwd);
 
 function touch(id, state, payload) {
   const now = Date.now(), old = sessions.get(id) || { since: now };
@@ -102,7 +103,7 @@ function touch(id, state, payload) {
 // Returns the status to push to the UI
 function onEvent(payload) {
   const ev = payload.hook_event_name, id = payload.session_id || 'default';
-  if (focusCwd && !path.resolve(payload.cwd || '').toLowerCase().startsWith(focusCwd)) return null;
+  if (!inFocus(payload)) return null;
   if (['UserPromptSubmit', 'PreToolUse', 'PostToolUse'].includes(ev)) touch(id, 'work', payload);
   else if (ev === 'PermissionRequest') touch(id, 'wait', payload);
   else if (ev === 'Stop' || ev === 'StopFailure') {
@@ -125,4 +126,4 @@ function resolved(id) {
 // debug: every session, newest first
 const list = () => (aggregate(), [...sessions].map(([id, s]) => ({ id, ...s })).sort((a, b) => b.t - a.t));
 
-module.exports = { install, uninstall, isInstalled, isCurrent, onEvent, aggregate, list, resolved, setFocus, SETTINGS };
+module.exports = { inFocus, install, uninstall, isInstalled, isCurrent, onEvent, aggregate, list, resolved, setFocus, SETTINGS };

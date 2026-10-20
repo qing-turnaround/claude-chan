@@ -324,6 +324,8 @@ http.createServer((req, res) => {
     req.on('end', () => {
       let payload;
       try { payload = JSON.parse(body); } catch { res.writeHead(204); return res.end(); }
+      // recording: requests from other sessions go back to their own terminal, off camera
+      if (!claude.inFocus(payload)) { res.writeHead(204); return res.end(); }
       pushStatus(claude.onEvent(payload));
       approvals.add(payload, res);
     });
@@ -375,6 +377,23 @@ http.createServer((req, res) => {
     const sel = cls === 'opt' ? '.opt' : `button.${cls.replace(/[^a-z]/g, '')}`;
     if (w) w.webContents.executeJavaScript(`(() => { const a = [...document.querySelectorAll('${sel}')]; (${idx === undefined ? 'a.pop()' : `a[${Number(idx)}]`})?.click(); })()`);
     res.end('ok');
+  } else if (process.env.PET_DEBUG && req.method === 'POST' && req.url === '/eval-approvals') {   // tests only
+    let body = '';
+    req.on('data', c => body += c);
+    req.on('end', () => {
+      const w = BrowserWindow.getAllWindows().find(x => x.webContents.getURL().includes('approvals.html'));
+      if (!w) return res.end('no window');
+      w.webContents.executeJavaScript(body).then(r => res.end(JSON.stringify(r ?? null)), e => res.end('ERR ' + e));
+    });
+  } else if (req.url === '/approvals-target') {   // debug: screen point (physical px) of the newest card's Allow button
+    const w = BrowserWindow.getAllWindows().find(x => x.webContents.getURL().includes('approvals.html') && x.isVisible());
+    if (!w) return res.end('null');
+    w.webContents.executeJavaScript(`(() => { const b = [...document.querySelectorAll('button.allow')].pop(); if (!b) return null; const r = b.getBoundingClientRect(); return { x: r.left + r.width / 2, y: r.top + r.height / 2 }; })()`)
+      .then((p) => {
+        if (!p) return res.end('null');
+        const wb = w.getBounds(), pt = { x: Math.round(wb.x + p.x), y: Math.round(wb.y + p.y) };
+        res.end(JSON.stringify(process.platform === 'win32' ? screen.dipToScreenPoint(pt) : pt));
+      }, () => res.end('null'));
   } else if (req.url === '/approvals-shot') {   // debug: capture the approval cards
     setTimeout(() => {
       const w = BrowserWindow.getAllWindows().find(x => x.webContents.getURL().includes('approvals.html'));
@@ -383,6 +402,9 @@ http.createServer((req, res) => {
     }, 900);
   } else if (req.url === '/sessions') {   // debug
     res.end(JSON.stringify(claude.list()));
+  } else if (req.url.startsWith('/critter-place')) {   // debug: ?red=0.3&pink=0.5 (floor, fraction of width)
+    for (const [k, v] of new URLSearchParams(req.url.split('?')[1] || '')) critters.debugPlace(k, Number(v));
+    res.end('ok');
   } else if (req.url === '/critters') {
     res.end(JSON.stringify(critters.debugState()));
   } else if (req.url === '/shot') {   // debug: capture the window itself (a screen capture can't see a transparent window)
