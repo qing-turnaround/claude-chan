@@ -52,13 +52,17 @@ When Claude Code asks for permission, a card pops up next to her: the command, o
 
 ## Outfits
 
-Right-click → **Outfit** to switch. Every outfit has the full set of poses, walk cycle and action clips.
+Five outfits. Right-click → **Outfit** to switch, or pick one in **Settings…**. The four Claude-chan outfits each have the full set of poses, walk cycle and action clips.
 
 | Hoodie | Scholar |
 |:---:|:---:|
 | <img src="docs/character-sheets/hoodie.webp" width="420"> | <img src="docs/character-sheets/scholar.webp" width="420"> |
 | **Maid** | **Spark Spirit** |
 | <img src="docs/character-sheets/maid.webp" width="420"> | <img src="docs/character-sheets/spirit.webp" width="420"> |
+
+**Clawd**: the fifth outfit swaps her for Claude Code's mascot, a red one and a pink one (show either or both). They crawl along the screen edges, hold hands, pile up, and pitch in while Claude Code works.
+
+<p align="center"><img src="docs/clawd.gif" width="480"></p>
 
 ## Install
 

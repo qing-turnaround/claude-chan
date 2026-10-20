@@ -52,13 +52,17 @@ Claude Code 要权限时，她旁边会弹出一张卡片，写着要执行的�
 
 ## 换装
 
-右键 →「换装」切换。每套衣服都有完整的姿势、走路和动作片段。
+一共 5 种形态，右键 →「换装」切换，也可以在「设置…」里选。Claude 酱的四套衣服都有完整的姿势、走路和动作片段。
 
 | 卫衣 | 学者 |
 |:---:|:---:|
 | <img src="docs/character-sheets/hoodie.webp" width="420"> | <img src="docs/character-sheets/scholar.webp" width="420"> |
 | **女仆** | **星芒精灵** |
 | <img src="docs/character-sheets/maid.webp" width="420"> | <img src="docs/character-sheets/spirit.webp" width="420"> |
+
+**Clawd**：第五种形态，把 Claude 酱换成 Claude Code 的吉祥物，红色、粉色各一只（可以只放一只）。它们沿着屏幕边爬，会牵手、会叠罗汉，Claude Code 干活时也跟着干活。
+
+<p align="center"><img src="docs/clawd.gif" width="480"></p>
 
 ## 安装
 

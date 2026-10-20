@@ -52,13 +52,17 @@ Claude Code が許可を求めると、彼女の横にカードが出ます。�
 
 ## 着せ替え
 
-右クリック →「着せ替え」で切り替え。どの衣装にもポーズ・歩行・アクションクリップが一式そろっています。
+衣装は 5 種類。右クリック →「着せ替え」か「設定…」で切り替えます。Claude-chan の 4 着にはポーズ・歩行・アクションクリップが一式そろっています。
 
 | パーカー | 学者 |
 |:---:|:---:|
 | <img src="docs/character-sheets/hoodie.webp" width="420"> | <img src="docs/character-sheets/scholar.webp" width="420"> |
 | **メイド** | **星の精** |
 | <img src="docs/character-sheets/maid.webp" width="420"> | <img src="docs/character-sheets/spirit.webp" width="420"> |
+
+**Clawd**：5 つ目の衣装。彼女の代わりに Claude Code のマスコット（赤とピンク、どちらか 1 匹でも OK）が登場します。画面のふちを歩き、手をつなぎ、積み重なり、Claude Code の作業中は一緒に働きます。
+
+<p align="center"><img src="docs/clawd.gif" width="480"></p>
 
 ## インストール
 
