@@ -181,7 +181,7 @@ function popupMenu(owner) {
       label: T.clawd[c], type: 'checkbox', checked: clawdKinds().includes(c),
       click: (m) => apply('clawdKind', { kind: c, on: m.checked }),
     }))] : [])] },
-    { label: T.link, type: 'checkbox', checked: claude.isInstalled(), click: (m) => apply('link', m.checked) },
+    { label: T.link, type: 'checkbox', checked: linked, click: (m) => apply('link', m.checked) },
     { type: 'separator' },
     { label: T.roam, type: 'checkbox', checked: settings.roam, click: (m) => apply('roam', m.checked) },
     { label: T.settings, click: openSettings },
@@ -215,7 +215,8 @@ function apply(key, v) {
     }
     case 'size': settings.size = Math.round(Math.min(SIZE_MAX, Math.max(SIZE_MIN, Number(v) || 1)) * 100) / 100; resize(); break;
     case 'roam': settings.roam = !!v; win.webContents.send('roam', settings.roam); critters.setRoam(settings.roam); break;
-    case 'link': toggleHooks(!!v); break;
+    case 'link': setLinked(!!v); break;
+    case 'unhook': removeHooks(); break;
     case 'login': app.setLoginItemSettings({ ...loginOpts(), openAtLogin: !!v }); break;
     case 'patApprove': settings.patApprove = !!v; break;
     case 'lang': settings.lang = i18n.LANGS.includes(v) ? v : 'auto'; break;
@@ -231,7 +232,7 @@ function settingsState() {
     T, langs: i18n.LANGS.map(k => [k, i18n.NATIVE[k]]),
     outfits: SKINS.filter(k => fs.existsSync(path.join(__dirname, 'assets', 'skins', k, 'idle.webp'))).concat('clawd'),
     skin: settings.skin, clawd: clawdKinds(), size: scale(), sizeMin: SIZE_MIN, sizeMax: SIZE_MAX,
-    roam: settings.roam, link: claude.isInstalled(), login: app.getLoginItemSettings(loginOpts()).openAtLogin,
+    roam: settings.roam, link: linked, hooks: claude.isInstalled(), login: app.getLoginItemSettings(loginOpts()).openAtLogin,
     lang: i18n.LANGS.includes(settings.lang) ? settings.lang : 'auto', version: app.getVersion(), canLogin: !LINUX, patApprove: settings.patApprove !== false,
     update: updater.state(),
   };
@@ -263,21 +264,32 @@ function loginOpts() {
   return app.isPackaged ? {} : { path: process.execPath, args: [app.getAppPath()] };
 }
 
-function toggleHooks(on) {
-  try {
-    on ? claude.install() : claude.uninstall();
-  } catch (e) {
+// Link Claude Code: the hooks go into ~/.claude/settings.json once and stay there; the switch only pauses the pet.
+// (Claude Code reads its hooks when it starts, so taking them out and back would leave the sessions started in
+// between unlinked, and editing that file while Claude Code runs makes it ask for a review.)
+function editHooks(fn) {
+  try { fn(); } catch (e) {
     dialog.showMessageBox(win, { type: 'error', message: `${i18n(settings.lang, app.getLocale()).cantEdit} ${claude.SETTINGS}`, detail: String(e.message || e) });
   }
+}
+function setLinked(on) {
+  settings.link = on;
+  if (on && !claude.isInstalled()) editHooks(() => claude.install());
+  checkLinked();
+  if (linked) pushStatus(claude.aggregate());             // back on: show what Claude Code is doing right away
+}
+// Settings > Remove from Claude Code: take the hooks out for good
+function removeHooks() {
+  editHooks(() => claude.uninstall());
+  settings.link = false;
   checkLinked();
 }
 
-// Unlinked (from the menu, or the hooks taken out of settings.json by hand): a Claude Code that's already running
-// keeps the hooks it started with and keeps calling, so from now on its events are ignored, and whatever it was
-// doing is dropped: the pets stop working, open cards go back to the terminal
+// Paused (switched off, or the hooks went missing): whatever Claude Code was doing is dropped: the pets go idle,
+// open cards go back to the terminal, and the events a running Claude Code keeps sending are ignored
 let linked = false;
 function checkLinked() {
-  const now = claude.isInstalled();
+  const now = settings.link !== false && claude.isInstalled();
   if (linked && !now) { claude.reset(); approvals.dropAll(); pushStatus('idle'); }
   linked = now;
 }
@@ -463,7 +475,7 @@ app.whenReady().then(() => {
   approvals.init({ pet: () => (win && !win.isDestroyed() && win.isVisible() ? win.getBounds() : null), text, decided: (id) => pushStatus(claude.resolved(id)) });
   // hooks put in by an older version (no approval card, no process id): bring them up to date
   try { if (claude.isInstalled() && !claude.isCurrent()) claude.install(); } catch {}
-  linked = claude.isInstalled();
+  checkLinked();
   critters.init({ pet: () => (win && !win.isDestroyed() && win.isVisible() ? win.getBounds() : null), menu: popupMenu, approve: patApprove });
   if (settings.skin === 'clawd') applyOutfit();
   updater.init({ text, open: openSettings, changed: () => { if (settingsWin && !settingsWin.isDestroyed()) settingsWin.webContents.send('changed', settingsState()); } });

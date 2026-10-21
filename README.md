@@ -107,7 +107,8 @@ Needs Claude Code **2.1.113 or newer** for the approval card (older versions tur
 
 - They use the system's built-in `curl` to forward events, so Node is not required. If the pet isn't running, they do nothing and never error.
 - Your settings file is backed up to `settings.json.claude-chan.bak` before the first change.
-- Uncheck to uninstall. Only her own hooks are removed; everything else is left untouched.
+- Unchecking only pauses: the hooks stay, the pet stops reacting, and checking it again picks up right away (no need to restart a running Claude Code).
+- To take them out for good, use **Remove from Claude Code** in Settings. Only her own hooks are removed; everything else is left untouched.
 
 ## Right-click menu and Settings
 
@@ -124,7 +125,7 @@ Everything starts with **right-clicking her** (with Clawd, right-click either on
 | Actions | Play an action: think, snack, stretch, sleep… (not in the Clawd outfit) |
 | Work status | Switch to Working / Waiting for you / Done by hand to see how it looks |
 | Outfit | The five outfits; with Clawd, also which ones to show |
-| Link Claude Code | Install / remove the hooks |
+| Link Claude Code | Turn the link on / pause it (the first time on installs the hooks) |
 | Free roaming | When off, stays put and still reacts to Claude Code |
 | **Settings…** | Open the Settings window |
 | Quit | |

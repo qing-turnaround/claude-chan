@@ -32,7 +32,9 @@ function render(s) {
   $('ver').textContent = 'v' + s.version;
   for (const [id, text] of [['secLook', T.secLook], ['secMove', T.secMove], ['secGeneral', T.secGeneral],
     ['who', T.who], ['sizeLabel', T.size], ['roamLabel', T.roam], ['roamHint', T.roamHint],
-    ['linkLabel', T.link], ['linkHint', T.linkHint], ['patLabel', T.pat], ['patHint', T.patHint], ['loginLabel', T.login], ['langLabel', T.language]]) $(id).textContent = text;
+    ['linkLabel', T.link], ['linkHint', T.linkHint], ['patLabel', T.pat], ['patHint', T.patHint], ['loginLabel', T.login], ['langLabel', T.language],
+    ['unhookLabel', T.unhook], ['unhookHint', T.unhookHint], ['unhookBtn', T.unhookBtn]]) $(id).textContent = text;
+  $('unhookRow').style.display = s.hooks ? '' : 'none';             // only while the hooks are in place
   $('reset').title = T.reset;
 
   $('outfits').replaceChildren(...s.outfits.map((k) => {
@@ -89,6 +91,7 @@ $('login').onchange = (e) => api.set('login', e.target.checked);
 $('pat').onchange = (e) => api.set('patApprove', e.target.checked);
 $('lang').onchange = (e) => api.set('lang', e.target.value);
 $('upBtn').onclick = () => api.set('update');
+$('unhookBtn').onclick = () => api.set('unhook');
 
 api.onChanged(render);
 api.state().then((s) => { render(s); requestAnimationFrame(() => document.body.classList.add('ready')); });
