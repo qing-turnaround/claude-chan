@@ -18,7 +18,7 @@ const SPEEDS = { walk: SPEED, chase: 2.0, flee: 1.7, carry: 0.5, run: 1.7, haul:
 const HOLD_GAP = 78;      // centre to centre while holding hands: body half-width 25 + a reach of 14, each side
 // idle: short walks between rests, so they spend well under half the time walking
 const RESTS = [['look', 2000, 4000], ['sit', 5000, 12000], ['stretch', 2400, 2400], ['doze', 6000, 12000]];
-const WORKING = ['type', 'rally', 'run', 'haul', 'fetch', 'brew'];   // modes that belong to the work routine
+const WORKING = ['type', 'rally', 'run', 'haul', 'fetch', 'brew', 'eat'];   // modes that belong to the work routine
 
 const C = {};              // kind -> per-critter state, see fresh()
 let active = [], getPet = () => null, onMenu = () => {}, waiting = false;
@@ -29,7 +29,9 @@ let holdAfterMeet = false, holdLead = null;   // hand in hand: the one in front 
 // Claude Code working: one Clawd types, the other (if out) helps: cheers it on, fetches coffee, and hauls a
 // code block to a pile next to it for every step Claude Code finishes. The pile sparkles away when it's done.
 let working = false, queue = 0, coffeeNext = 0;
-const pile = { s: 0, count: 0, win: null, flashUntil: 0, side: 1 };
+const pile = { s: 0, count: 0, win: null, flashUntil: 0, side: 1, eatStart: 0 };
+const PILE_MAX = 6;        // two rows; then the pink one eats the lot so it never stands in the way
+const EAT_MS = 3000;       // gulp the blocks one by one, chew, burp
 
 const rand = (a, b) => a + Math.random() * (b - a);
 let fakeCursor = null;     // debug: a scripted cursor, so drags can be tested without moving the real mouse
@@ -235,10 +237,10 @@ const resting = (m) => m === 'walk' || RESTS.some((x) => x[0] === m);
 function startWork() {
   working = true; queue = 0; coffeeNext = Date.now() + rand(15000, 30000);
   const w = C[worker()];
-  if (w) { pile.side = Math.random() < 0.5 ? 1 : -1; pile.s = w.s + pile.side * 110 * SC; pile.count = 0; pile.flashUntil = 0; }
+  if (w) { pile.side = Math.random() < 0.5 ? 1 : -1; pile.s = w.s + pile.side * 110 * SC; pile.count = 0; pile.flashUntil = 0; pile.eatStart = 0; }
 }
 function stopWork(done) {
-  working = false; queue = 0;
+  working = false; queue = 0; pile.eatStart = 0;
   pile.flashUntil = done && pile.count ? Date.now() + 1400 : 0;   // a finished pile sparkles, then goes
   if (!done) pile.count = 0;
   active.forEach((k) => { const st = C[k]; st.goal = null; st.after = null; if (WORKING.includes(st.mode)) setMode(k, 'walk', 0); });
@@ -262,7 +264,16 @@ function nextErrand(now) {
     setMode(h, 'run', 1e12);
     H.goal = { s: Wk.s + pile.side * 30 * SC, then: () => {
       setMode(h, 'haul', 1e12);
-      H.goal = { s: pile.s - pile.side * 18 * SC, then: () => { queue = Math.max(0, queue - 1); pile.count = Math.min(12, pile.count + 1); setMode(h, 'hop', 700); } };
+      H.goal = { s: pile.s - pile.side * 18 * SC, then: () => {
+        queue = Math.max(0, queue - 1); pile.count = Math.min(PILE_MAX, pile.count + 1);
+        if (pile.count < PILE_MAX) return setMode(h, 'hop', 700);
+        // the pile is full: a step back, turn to it, and eat it in one go
+        setMode(h, 'run', 1e12);
+        H.goal = { s: pile.s - pile.side * 40 * SC, then: () => {
+          H.dir = pile.side; setMode(h, 'eat', EAT_MS); pile.eatStart = Date.now();
+          H.after = () => { pile.count = 0; pile.eatStart = 0; setMode(h, 'hop', 700); };
+        } };
+      } };
     } };
     return;
   }
@@ -275,7 +286,12 @@ function workTick(now) {
   const w = worker(), h = helper(), Wk = C[w];
   if (!busy(Wk) && !waiting && !sleeping && resting(Wk.mode)) setMode(w, 'type', 1e12);
   // nobody to carry the blocks (one Clawd, or not roaming): they land on the pile by themselves
-  if ((!h || !roam) && queue > 0) { pile.count = Math.min(12, pile.count + queue); queue = 0; }
+  if ((!h || !roam) && queue > 0 && now >= pile.flashUntil) {
+    pile.count = Math.min(PILE_MAX, pile.count + queue); queue = 0;
+    if (pile.count >= PILE_MAX) pile.flashUntil = now + 1400;   // nobody to eat it: a full pile sparkles away
+  }
+  // an interrupted meal (an approval came up, it was picked up...) still clears the pile
+  if (pile.eatStart && !(h && C[h].mode === 'eat')) { pile.count = 0; pile.eatStart = 0; }
   if (!h) return;
   const H = C[h];
   if (busy(H) || waiting || sleeping || H.goal) return;
@@ -396,6 +412,7 @@ function tick() {
 // the pile of code blocks next to the one typing
 function drawPile(now) {
   if (!working && now >= pile.flashUntil) pile.count = 0;      // the finished pile is gone once its sparkle ends
+  if (working && pile.flashUntil && now >= pile.flashUntil) { pile.count = 0; pile.flashUntil = 0; }
   if (!active.length || !(pile.count > 0 || now < pile.flashUntil)) {
     if (pile.win && !pile.win.isDestroyed() && pile.win.isVisible()) pile.win.hide();
     return;
@@ -404,7 +421,8 @@ function drawPile(now) {
   const p = at(pile.s), W = Math.round(WIN * SC);
   pile.win.setBounds({ x: Math.round(p.x - W / 2), y: Math.round(p.y - W / 2), width: W, height: W });
   if (!pile.win.isVisible()) pile.win.showInactive();
-  pile.win.webContents.send('pose', { angle: p.angle, dir: 1, mode: 'blocks', count: pile.count, flash: now < pile.flashUntil, scale: SC });
+  pile.win.webContents.send('pose', { angle: p.angle, dir: 1, mode: 'blocks', count: pile.count, flash: now < pile.flashUntil, scale: SC,
+    eat: pile.eatStart ? now - pile.eatStart : -1, side: pile.side });
 }
 
 function setScale(v) { SC = v; }
@@ -525,6 +543,6 @@ function debugPlace(k, where) {
   const x = x0 + w * t, y = y0 + h * t;
   C[k].free = null; C[k].rideOn = null; C[k].goal = null; C[k].s = sOn(edge, x, y); setMode(k, 'walk', 0);
 }
-const debugState = () => active.map((k) => ({ kind: k, mode: C[k].mode, dir: C[k].dir, free: C[k].free, rideOn: C[k].rideOn, pos: centre(k) }));
+const debugState = () => active.map((k) => ({ kind: k, mode: C[k].mode, dir: C[k].dir, free: C[k].free, rideOn: C[k].rideOn, pos: centre(k), pile: pile.count, queue, roam, working }));
 
 module.exports = { debugPlace, init, show, setScale, setRoam, status, pulse, shot, debugState, debugMode, debugDrag };

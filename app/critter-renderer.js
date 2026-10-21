@@ -65,6 +65,12 @@ function faceFor(m, now) {
     case 'rally': return { eyes: 'happy', mouth: 'grin' };
     case 'stretch': return { eyes: 'shut', mouth: 'o' };
     case 'doze': return { eyes: 'shut', mouth: 'small' };
+    case 'eat': {                                                   // gulp, chew, burp (see EAT_MS)
+      const t = now - modeSince;
+      if (t < 1450) return { eyes: 'happy', mouth: 'chomp' };
+      if (t < 2500) return { eyes: 'shut', mouth: 'chew', blush: true };
+      return { eyes: 'happy', mouth: 'o', blush: true };
+    }
   }
   if (pose.look && pose.look.near) return { eyes: 'happy', mouth: 'smile', blush: true };   // cursor right next to it
   return { eyes: 'happy', mouth: 'smile' };                 // the default is the smiley ^ ^ face, working or not
@@ -179,6 +185,12 @@ function drawFace(f, now) {
     case 'flat': line([[-3, 6], [3, 6]]); break;
     case 'pout': line([[-4, 7], [0, 5], [4, 7]]); break;
     case 'wavy': line([[-5, 6], [-2.5, 4.5], [0, 6], [2.5, 4.5], [5, 6]]); break;
+    case 'chomp': {                                // wide open, snapping shut as each block goes in
+      const open = 0.35 + 0.65 * Math.abs(Math.cos(((now - modeSince - 300) / 170) * Math.PI));
+      g.beginPath(); g.ellipse(0, 6, 7, 1.5 + open * 6, 0, 0, Math.PI * 2); g.fillStyle = '#7A2E2A'; g.fill(); g.stroke();
+      break;
+    }
+    case 'chew': { const s = Math.sin(now / 90) * 1.5; line([[-5, 6 + s], [-2, 4.5 - s], [2, 6 + s], [5, 4.5 - s]]); break; }
   }
   if (f.blush) {
     g.fillStyle = '#E2556F'; g.globalAlpha = 0.35;
@@ -239,6 +251,10 @@ function draw() {
     if (flailing) { up = Math.max(0, Math.sin(ph + i)) * 4; swing = Math.cos(ph + i) * 3; }
     poly([[x - 3.3, 18 + sit], [x + 3.3, 18 + sit], [x + 3.3 + swing, 31 - up + lift * 0.4], [x - 3.3 + swing, 31 - up + lift * 0.4]], L.body, 10 + i * 5);
   });
+  if (m === 'eat' && now - modeSince > 1300 && now - modeSince < 2700) {
+    const q = Math.min(1, (now - modeSince - 1300) / 200) * (0.12 + Math.sin(now / 90) * 0.02);
+    g.translate(0, 19); g.scale(1 + q, 1 + q * 0.4); g.translate(0, -19);
+  }
   if (m === 'stretch') { const t = Math.sin(Math.min(1, (now - modeSince) / 2400) * Math.PI); g.translate(0, 19); g.scale(1 - t * 0.04, 1 + t * 0.1); g.translate(0, -19); }
   g.translate(0, sit);
 
@@ -361,6 +377,10 @@ function draw() {
       g.restore();
     }
   }
+  if (m === 'eat' && now - modeSince > 2500) {
+    const p = Math.min(1, (now - modeSince - 2500) / 500);
+    g.save(); upright(8 + p * 6, -2 - p * 26); g.globalAlpha = 1 - p * 0.6; star(0, 0, 3 + p * 3); g.restore();
+  }
   // dizzy: little stars circling the head
   if (m === 'dizzy') {
     for (let i = 0; i < 3; i++) {
@@ -381,7 +401,7 @@ function draw() {
     if (heartT >= 1) heartT = -1;
   }
 }
-let shown = 0, dropT = 0;
+let shown = 0, dropT = 0, eatT0 = 0;
 function drawBlocks() {
   const now = performance.now();
   g.setTransform(dpr * SC, 0, 0, dpr * SC, 0, 0);
@@ -392,11 +412,25 @@ function drawBlocks() {
   if (n > shown) dropT = now;                 // a new one lands with a little bounce
   shown = n;
   const fade = pose.flash ? Math.max(0, 1 - (now - flashStart) / 1400) : 1;
-  // rows of 3 / 3 / 3 / 3 from the wall outward, each row nudged sideways
+  // being eaten: the time into the meal, on this window's clock
+  if (pose.eat >= 0 && !eatT0) eatT0 = now - pose.eat;
+  if (pose.eat < 0) eatT0 = 0;
+  const mouthX = -(pose.side || 1) * 40, mouthY = 6;   // where the eater stands (see EAT_MS in critters.js)
+  // rows of 3 from the wall outward, each row nudged sideways
   for (let i = 0; i < n; i++) {
     const row = Math.floor(i / 3), col = i % 3;
     let y = 24 - row * 14, x = (col - 1) * 19 + (row % 2 ? 5 : 0);
     if (i === n - 1 && now - dropT < 300) y -= Math.sin(((now - dropT) / 300) * Math.PI) * 6;
+    if (eatT0) {                                // top block first, one every 170 ms, in an arc into the mouth
+      const t = (now - eatT0 - 300 - (n - 1 - i) * 170) / 260;
+      if (t >= 1) continue;
+      if (t > 0) {
+        const e = t * t;
+        g.save(); g.translate(x + (mouthX - x) * e, y + (mouthY - y) * e - Math.sin(t * Math.PI) * 12);
+        g.scale(1 - e * 0.65, 1 - e * 0.65); block(0, 0, i, fade); g.restore();
+        continue;
+      }
+    }
     block(x, y, i, fade);
   }
   if (pose.flash) {                           // done: sparkles over the pile
