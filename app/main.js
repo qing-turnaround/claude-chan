@@ -56,7 +56,7 @@ function createWindow() {
     icon: path.join(__dirname, 'assets', 'icon.png'),
     width: w, height: h, x, y,
     transparent: true, frame: false, resizable: false, hasShadow: false,
-    alwaysOnTop: true, skipTaskbar: true, focusable: true, backgroundColor: '#00000000', show: settings.skin !== 'clawd',
+    alwaysOnTop: true, skipTaskbar: true, type: 'toolbar', focusable: true, backgroundColor: '#00000000', show: settings.skin !== 'clawd',
     webPreferences: { preload: path.join(__dirname, 'preload.js') },
   });
   win.setAlwaysOnTop(true, 'screen-saver');

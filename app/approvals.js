@@ -92,7 +92,7 @@ function refresh() {
     win = new BrowserWindow({
       icon: path.join(__dirname, 'assets', 'icon.png'),
       width: W, height: 160, transparent: true, frame: false, resizable: false, hasShadow: false,
-      alwaysOnTop: true, skipTaskbar: true, show: false, backgroundColor: '#00000000',
+      alwaysOnTop: true, skipTaskbar: true, type: 'toolbar', show: false, backgroundColor: '#00000000',
       webPreferences: { preload: path.join(__dirname, 'approvals-preload.js'), backgroundThrottling: false },
     });
     win.setAlwaysOnTop(true, 'screen-saver');

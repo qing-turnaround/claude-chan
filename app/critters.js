@@ -84,10 +84,15 @@ function create(kind) {
   const w = new BrowserWindow({
     icon: path.join(__dirname, 'assets', 'icon.png'),
     width: Math.round(WIN * SC), height: Math.round(WIN * SC), transparent: true, frame: false, resizable: false, hasShadow: false,
-    alwaysOnTop: true, skipTaskbar: true, focusable: false, backgroundColor: '#00000000', show: true,
-    // unfocusable transparent windows count as occluded to Chromium and stop compositing unless throttling is off
+    // The Clawds must be focusable: Chromium answers a click on a window that can never be activated with "don't
+    // activate, and eat the press" (WM_MOUSEACTIVATE -> MA_NOACTIVATEANDEAT), so on Windows a real mouse press never
+    // reached the page and they couldn't be picked up (a synthesized click doesn't trigger that, so tests passed).
+    // They're shown without taking focus; only clicking one gives it focus, as with Claude-chan herself.
+    alwaysOnTop: true, skipTaskbar: true, type: 'toolbar', focusable: kind !== 'blocks', backgroundColor: '#00000000', show: false,
+    // transparent windows can count as occluded to Chromium and stop compositing unless throttling is off
     webPreferences: { preload: path.join(__dirname, 'critter-preload.js'), backgroundThrottling: false },
   });
+  w.showInactive();
   w.setAlwaysOnTop(true, 'screen-saver');
   if (process.platform === 'darwin') w.setVisibleOnAllWorkspaces(true, { visibleOnFullScreen: true });
   // the pile never takes the mouse; on Linux the Clawds take it inside their shape, elsewhere per pixel
