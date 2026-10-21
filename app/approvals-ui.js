@@ -43,16 +43,24 @@ function fieldsBody(it) {
 
 // AskUserQuestion: the question and its options, answered right here
 function questionBody(it, T) {
-  const sel = picks.get(it.id) || {};
+  const sel = picks.get(it.id) || { typed: {} };
   picks.set(it.id, sel);
   const single = it.questions.length === 1 && !it.questions[0].multi;
   const out = [];
-  const submit = button('allow', T.submit, () => {
+  // a typed answer ("Other") replaces the pick on a single-choice question, and joins the picks on a multi-choice one
+  const answer = (q, i) => {
+    const typed = (sel.typed[i] || '').trim();
+    if (!q.multi && typed) return typed;
+    return [...(sel[i] || []), ...(typed ? [typed] : [])].join(', ');
+  };
+  const ready = () => it.questions.every((q, i) => answer(q, i));
+  const send = () => {
+    if (!ready()) return;
     const answers = {};
-    it.questions.forEach((q, i) => { answers[i] = [...(sel[i] || [])].join(', '); });
+    it.questions.forEach((q, i) => { answers[i] = answer(q, i); });
     window.approvals.decide(it.id, 'answer', answers);
-  });
-  const ready = () => it.questions.every((_q, i) => sel[i] && sel[i].size);
+  };
+  const submit = button('allow', T.submit, send);
   it.questions.forEach((q, i) => {
     const box = el('div', 'q');
     if (q.header) box.append(el('div', 'qhead', q.header));
@@ -66,15 +74,26 @@ function questionBody(it, T) {
         const s = sel[i] || (sel[i] = new Set());
         if (q.multi) s.has(o.label) ? s.delete(o.label) : s.add(o.label);
         else { s.clear(); s.add(o.label); }
+        if (!q.multi) { sel.typed[i] = ''; other.value = ''; }
         box.querySelectorAll('.opt').forEach((x, k) => x.classList.toggle('on', s.has(q.options[k].label)));
         submit.disabled = !ready();
       };
       box.append(opt);
     });
+    // the terminal's own "Type something" choice: an answer of your own
+    const other = el('input', 'other');
+    other.placeholder = T.other; other.value = sel.typed[i] || '';
+    other.oninput = () => {
+      sel.typed[i] = other.value;
+      if (!q.multi && other.value.trim() && sel[i]) { sel[i].clear(); box.querySelectorAll('.opt').forEach((x) => x.classList.remove('on')); }
+      submit.disabled = !ready();
+    };
+    other.onkeydown = (e) => { if (e.key === 'Enter' && !e.isComposing) send(); };   // not the Enter that ends IME input
+    box.append(other);
     out.push(box);
   });
   const btns = el('div', 'btns');
-  if (!single) { submit.disabled = !ready(); btns.append(submit); }
+  submit.disabled = !ready(); btns.append(submit);
   btns.append(button('deny', T.toTerminal, () => window.approvals.decide(it.id, 'terminal')));
   out.push(btns);
   return out;

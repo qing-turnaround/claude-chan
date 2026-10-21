@@ -7,7 +7,7 @@ const STR = {
         language: '语言', auto: '跟随系统', clawd: { red: '红色', pink: '粉色' },
         settings: '设置…', title: '设置', secLook: '外观', secMove: '行为', secGeneral: '通用', who: '显示哪只', reset: '默认',
         roamHint: '关掉后原地待着，照样跟着 Claude Code 动', linkHint: '干活、等你批准、做完时都会跟着反应', pat: '双击头批准', patHint: '她举手等批准时，双击她的头就允许一次',
-        allow: '允许', deny: '拒绝', always: '始终允许', submit: '提交', toTerminal: '去终端回答', question: '有问题问你', },
+        allow: '允许', deny: '拒绝', always: '始终允许', submit: '提交', other: '其他：自己写…', toTerminal: '去终端回答', question: '有问题问你', },
   tw: { actions: '動作', idle: '待機', think: '思考', eat: '吃飯糰', stretch: '伸懶腰', yawn: '打哈欠', wave: '打招呼',
         sleep: '睡覺', done: '歡呼', walk: '走走', status: '工作狀態', work: '工作中', wait: '等你確認', finish: '完成',
         link: '連動 Claude Code', size: '大小', roam: '自由走動', login: '開機自動啟動', quit: '結束', cantEdit: '無法寫入',
@@ -15,7 +15,7 @@ const STR = {
         language: '語言', auto: '跟隨系統', clawd: { red: '紅色', pink: '粉色' },
         settings: '設定…', title: '設定', secLook: '外觀', secMove: '行為', secGeneral: '一般', who: '顯示哪隻', reset: '預設',
         roamHint: '關掉後原地待著，照樣跟著 Claude Code 動', linkHint: '工作、等你批准、完成時都會跟著反應', pat: '雙擊頭批准', patHint: '她舉手等批准時，雙擊她的頭就允許一次',
-        allow: '允許', deny: '拒絕', always: '一律允許', submit: '送出', toTerminal: '到終端機回答', question: '有問題問你', },
+        allow: '允許', deny: '拒絕', always: '一律允許', submit: '送出', other: '其他：自己寫…', toTerminal: '到終端機回答', question: '有問題問你', },
   ja: { actions: 'アクション', idle: '待機', think: '考えごと', eat: 'おにぎり', stretch: 'のび', yawn: 'あくび', wave: 'あいさつ',
         sleep: 'ねる', done: 'バンザイ', walk: 'おさんぽ', status: '作業状態', work: '作業中', wait: '許可待ち', finish: '完了',
         link: 'Claude Code と連動', size: 'サイズ', roam: '自由に歩く', login: 'スタートアップ起動', quit: '終了', cantEdit: '書き込めません',
@@ -23,7 +23,7 @@ const STR = {
         language: '言語', auto: 'システムに合わせる', clawd: { red: 'レッド', pink: 'ピンク' },
         settings: '設定…', title: '設定', secLook: '見た目', secMove: 'ふるまい', secGeneral: '一般', who: '表示する子', reset: '標準',
         roamHint: 'オフにするとその場にとどまり、Claude Code への反応だけ続けます', linkHint: '作業中・許可待ち・完了に合わせて反応します', pat: 'ダブルクリックで許可', patHint: '手を挙げて許可を待っているとき、頭をダブルクリックすると 1 回だけ許可します',
-        allow: '許可', deny: '拒否', always: '常に許可', submit: '送信', toTerminal: 'ターミナルで答える', question: '質問があります', },
+        allow: '許可', deny: '拒否', always: '常に許可', submit: '送信', other: 'その他：自由に入力…', toTerminal: 'ターミナルで答える', question: '質問があります', },
   en: { actions: 'Actions', idle: 'Idle', think: 'Think', eat: 'Snack', stretch: 'Stretch', yawn: 'Yawn', wave: 'Wave',
         sleep: 'Sleep', done: 'Cheer', walk: 'Walk', status: 'Work status', work: 'Working', wait: 'Waiting for you', finish: 'Done',
         link: 'Link Claude Code', size: 'Size', roam: 'Free roaming', login: 'Launch at startup', quit: 'Quit', cantEdit: 'Cannot write',
@@ -31,7 +31,7 @@ const STR = {
         language: 'Language', auto: 'System default', clawd: { red: 'Red', pink: 'Pink' },
         settings: 'Settings…', title: 'Settings', secLook: 'Look', secMove: 'Behavior', secGeneral: 'General', who: 'Which ones', reset: 'Default',
         roamHint: 'When off, stays put and still reacts to Claude Code', linkHint: 'Reacts while it works, when it needs your approval, and when it is done', pat: 'Double-click to approve', patHint: 'While she raises her hand for approval, double-click her head to allow it once',
-        allow: 'Allow', deny: 'Deny', always: 'Always allow', submit: 'Submit', toTerminal: 'Answer in terminal', question: 'A question for you', },
+        allow: 'Allow', deny: 'Deny', always: 'Always allow', submit: 'Submit', other: 'Other: type your own…', toTerminal: 'Answer in terminal', question: 'A question for you', },
 };
 
 // Each language is shown in its own script in the language menu
