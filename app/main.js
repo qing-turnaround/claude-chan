@@ -188,19 +188,9 @@ function popupMenu(owner) {
     { type: 'separator' },
     { label: T.quit, click: () => app.quit() },
   ];
-  menuOpen = true;
-  Menu.buildFromTemplate(tpl).popup({ window: owner || win, callback: () => { menuOpen = false; } });
+  Menu.buildFromTemplate(tpl).popup({ window: owner || win });
 }
-let menuOpen = false;
 
-// Windows: an always-on-top window the user clicks goes above ours; every so often put ours back on top (pet, then
-// the approval card over it), without taking focus. Not while a menu is open, which would end up underneath
-if (process.platform === 'win32') setInterval(() => {
-  if (menuOpen) return;
-  if (win && !win.isDestroyed() && win.isVisible()) win.moveTop();
-  critters.raise();
-  approvals.raise();
-}, 1500);
 ipcMain.on('menu', () => popupMenu(win));
 
 // ---------- Settings: one place that changes things, used by the menu and the Settings window ----------

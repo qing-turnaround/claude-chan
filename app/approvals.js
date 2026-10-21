@@ -159,6 +159,4 @@ function dropAll() { [...pending].forEach((e) => reply(e, null)); }
 const count = () => pending.length;
 const relayout = () => { if (win && !win.isDestroyed() && win.isVisible()) win.webContents.send('view', view()); };
 
-const raise = () => { if (win && !win.isDestroyed() && win.isVisible()) win.moveTop(); };
-
-module.exports = { init, add, sessionMoved, count, relayout, approveOldest, dropAll, raise };
+module.exports = { init, add, sessionMoved, count, relayout, approveOldest, dropAll };
