@@ -62,6 +62,15 @@ function render(s) {
   $('lang').replaceChildren(...[['auto', T.auto], ...s.langs].map(([k, label]) => {
     const o = document.createElement('option'); o.value = k; o.textContent = label; o.selected = s.lang === k; return o;
   }));
+  // updates: what's going on, and the one button that moves it along
+  const u = s.update, up = $('upBtn');
+  $('upLabel').textContent = T.upCheck;
+  $('upHint').textContent = !u.enabled ? T.upDev
+    : { checking: T.upChecking, latest: T.upLatest, error: T.upError, available: T.upAvailable, ready: T.upReady,
+      downloading: T.upDownloading.replace('{p}', u.percent || 0) }[u.status]?.replace('{v}', u.version) || '';
+  up.textContent = u.status === 'ready' ? T.upRestart : u.status === 'available' ? T.upDownload : T.upCheck;
+  up.className = 'btn' + (u.status === 'ready' || u.status === 'available' ? ' go' : '');
+  up.disabled = !u.enabled || u.status === 'checking' || u.status === 'downloading';
   requestAnimationFrame(() => api.height(document.body.scrollHeight));
 }
 
@@ -79,6 +88,7 @@ $('link').onchange = (e) => api.set('link', e.target.checked);
 $('login').onchange = (e) => api.set('login', e.target.checked);
 $('pat').onchange = (e) => api.set('patApprove', e.target.checked);
 $('lang').onchange = (e) => api.set('lang', e.target.value);
+$('upBtn').onclick = () => api.set('update');
 
 api.onChanged(render);
 api.state().then((s) => { render(s); requestAnimationFrame(() => document.body.classList.add('ready')); });

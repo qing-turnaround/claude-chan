@@ -1,7 +1,8 @@
 name: Build & Release
 
 # Push a tag like v0.2.0: builds Windows (x64, arm64), macOS (arm64, x64) and Linux (x64) installers,
-# smoke-tests each packaged app, and attaches everything to a draft release for that tag.
+# smoke-tests each packaged app, and attaches everything to a draft release for that tag. The latest*.yml and
+# .blockmap files are what the in-app updater reads (it downloads only the blocks that changed).
 on:
   push:
     tags: ["v*"]
@@ -70,6 +71,8 @@ jobs:
             app/dist/*.zip
             app/dist/*.AppImage
             app/dist/*.deb
+            app/dist/*.blockmap
+            app/dist/latest*.yml
           if-no-files-found: error
 
   release:

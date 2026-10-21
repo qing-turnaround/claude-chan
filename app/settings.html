@@ -49,6 +49,10 @@
   .reset { border: 0; background: none; color: var(--mute); cursor: pointer; font-size: 15px; padding: 0 2px; line-height: 1; }
   .reset:hover { color: var(--accent); }
 
+  .btn { font: inherit; padding: 5px 14px; border: 1px solid var(--line); border-radius: 8px; background: #fff; color: var(--ink); cursor: pointer; white-space: nowrap; }
+  .btn:hover { border-color: var(--accent); }
+  .btn.go { background: var(--accent); border-color: var(--accent); color: #fff; font-weight: 600; }
+  .btn:disabled { opacity: .5; cursor: default; border-color: var(--line); }
   select { font: inherit; padding: 4px 8px; border: 1px solid var(--line); border-radius: 8px; background: #fff; color: var(--ink); }
 
   /* switch */
@@ -88,6 +92,7 @@
   <div class="card">
     <div class="row"><div class="label" id="loginLabel"></div><label class="sw"><input type="checkbox" id="login"><span></span></label></div>
     <div class="row"><div class="label" id="langLabel"></div><select id="lang"></select></div>
+    <div class="row"><div class="label"><div id="upLabel"></div><div class="hint" id="upHint"></div></div><button class="btn" id="upBtn"></button></div>
   </div>
 
   <script src="settings.js"></script>

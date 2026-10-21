@@ -3,6 +3,7 @@ const claude = require('./claude-hooks');
 const i18n = require('./i18n');
 const critters = require('./critters');
 const approvals = require('./approvals');
+const updater = require('./updater');
 const http = require('http');
 const path = require('path');
 const fs = require('fs');
@@ -207,6 +208,7 @@ function apply(key, v) {
     case 'login': app.setLoginItemSettings({ ...loginOpts(), openAtLogin: !!v }); break;
     case 'patApprove': settings.patApprove = !!v; break;
     case 'lang': settings.lang = i18n.LANGS.includes(v) ? v : 'auto'; break;
+    case 'update': updater.act(); return;               // check / restart into the new version / open the download page
   }
   save();
   if (settingsWin && !settingsWin.isDestroyed()) settingsWin.webContents.send('changed', settingsState());
@@ -220,6 +222,7 @@ function settingsState() {
     skin: settings.skin, clawd: clawdKinds(), size: scale(), sizeMin: SIZE_MIN, sizeMax: SIZE_MAX,
     roam: settings.roam, link: claude.isInstalled(), login: app.getLoginItemSettings(loginOpts()).openAtLogin,
     lang: i18n.LANGS.includes(settings.lang) ? settings.lang : 'auto', version: app.getVersion(), canLogin: !LINUX, patApprove: settings.patApprove !== false,
+    update: updater.state(),
   };
 }
 
@@ -373,6 +376,8 @@ http.createServer((req, res) => {
     let body = '';
     req.on('data', c => body += c);
     req.on('end', () => { critters.debugDrag(req.url.split('?')[1] || 'red', JSON.parse(body).map(([x, y]) => ({ x, y }))); res.end('ok'); });
+  } else if (process.env.PET_DEBUG && req.method === 'POST' && req.url === '/update') {   // tests only: same as the Settings button
+    updater.act(); res.end(JSON.stringify(updater.state()));
   } else if (req.url === '/settings-state') {   // debug: what the Settings window is given (or why it fails)
     try { res.end(JSON.stringify(settingsState())); } catch (e) { res.end(JSON.stringify({ error: String(e && e.stack || e) })); }
   } else if (req.url === '/settings-shot') {   // debug: open Settings and capture it
@@ -423,6 +428,7 @@ http.createServer((req, res) => {
 
 if (!app.requestSingleInstanceLock()) app.quit();
 app.whenReady().then(() => {
+  if (process.platform === 'win32') app.setAppUserModelId('com.qing.claudechan');   // so update notifications show
   createWindow();
   critters.setScale(scale()); critters.setRoam(settings.roam);
   const text = () => i18n(settings.lang, app.getLocale());
@@ -431,5 +437,6 @@ app.whenReady().then(() => {
   try { if (claude.isInstalled() && !claude.isCurrent()) claude.install(); } catch {}
   critters.init({ pet: () => (win && !win.isDestroyed() && win.isVisible() ? win.getBounds() : null), menu: popupMenu, approve: patApprove });
   if (settings.skin === 'clawd') applyOutfit();
+  updater.init({ text, changed: () => { if (settingsWin && !settingsWin.isDestroyed()) settingsWin.webContents.send('changed', settingsState()); } });
 });
 app.on('window-all-closed', () => app.quit());

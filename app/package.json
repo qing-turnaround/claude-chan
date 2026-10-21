@@ -39,7 +39,8 @@
       "approvals-ui.js",
       "approvals-preload.js",
       "critter-renderer.js",
-      "critter-preload.js"
+      "critter-preload.js",
+      "updater.js"
     ],
     "directories": {
       "output": "dist",
@@ -71,7 +72,8 @@
         "zh_TW",
         "ja_JP"
       ],
-      "buildUniversalInstaller": false
+      "buildUniversalInstaller": false,
+      "differentialPackage": true
     },
     "electronLanguages": [
       "en-US",
@@ -127,7 +129,17 @@
       "executableName": "claude-chan",
       "maintainer": "qing-turnaround <71116975+qing-turnaround@users.noreply.github.com>",
       "artifactName": "Claude-chan-${version}-${arch}.${ext}"
-    }
+    },
+    "publish": [
+      {
+        "provider": "github",
+        "owner": "qing-turnaround",
+        "repo": "claude-chan"
+      }
+    ]
   },
-  "homepage": "https://github.com/qing-turnaround/claude-chan"
+  "homepage": "https://github.com/qing-turnaround/claude-chan",
+  "dependencies": {
+    "electron-updater": "^6.8.9"
+  }
 }
