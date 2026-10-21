@@ -66,11 +66,11 @@ function render(s) {
   const u = s.update, up = $('upBtn');
   $('upLabel').textContent = T.upCheck;
   $('upHint').textContent = !u.enabled ? T.upDev
-    : { checking: T.upChecking, latest: T.upLatest, error: T.upError, available: T.upAvailable, ready: T.upReady,
+    : { checking: T.upChecking, latest: T.upLatest, error: T.upError, available: T.upAvailable, installing: T.upInstalling,
       downloading: T.upDownloading.replace('{p}', u.percent || 0) }[u.status]?.replace('{v}', u.version) || '';
-  up.textContent = u.status === 'ready' ? T.upRestart : u.status === 'available' ? T.upDownload : T.upCheck;
-  up.className = 'btn' + (u.status === 'ready' || u.status === 'available' ? ' go' : '');
-  up.disabled = !u.enabled || u.status === 'checking' || u.status === 'downloading';
+  up.textContent = u.status === 'available' ? (u.canInstall ? T.upNow : T.upDownload) : T.upCheck;
+  up.className = 'btn' + (u.status === 'available' ? ' go' : '');
+  up.disabled = !u.enabled || ['checking', 'downloading', 'installing'].includes(u.status);
   requestAnimationFrame(() => api.height(document.body.scrollHeight));
 }
 

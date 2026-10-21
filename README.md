@@ -93,7 +93,7 @@ The builds aren't signed by Microsoft / Apple yet:
 - **macOS**: the first open is blocked. Open **System Settings → Privacy & Security** and click **Open Anyway**, or run `xattr -dr com.apple.quarantine /Applications/Claude-chan.app`.
 - **Linux**: `chmod +x` the AppImage and run it, or `sudo apt install ./Claude-chan-*.deb`. A compositing desktop is needed for transparency. On Wayland it runs through XWayland. Electron can't pass clicks through per pixel on Linux, so a small box around the character catches the mouse; launch at startup isn't available there.
 
-**Updates**: from 0.2.2 on, Windows and the AppImage download new versions in the background, only the parts that changed (usually a few MB). Click **Restart to update** in Settings, or it installs the next time you quit. macOS and the .deb tell you when there's a new version to download.
+**Updates**: from 0.2.2 on, you're told when there's a new version; nothing downloads by itself. On Windows and the AppImage, click **Update** in Settings: it downloads only the parts that changed (usually a few MB) and restarts. On macOS and the .deb, **Download** opens the download page.
 
 Needs Claude Code **2.1.113 or newer** for the approval card (older versions turn a failed permission hook into a denial while the pet is closed).
 
@@ -137,7 +137,7 @@ In Settings:
 - **Double-click to approve**: on by default
 - **Launch at startup**: off by default
 - **Language**: follows your system (English / 简体中文 / 繁體中文 / 日本語) unless you pick one
-- **Check for updates**: shows where things stand; once a new version is downloaded it becomes **Restart to update**
+- **Check for updates**: shows where things stand; when there's a new version it becomes **Update**
 
 ## Development
 

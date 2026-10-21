@@ -437,6 +437,6 @@ app.whenReady().then(() => {
   try { if (claude.isInstalled() && !claude.isCurrent()) claude.install(); } catch {}
   critters.init({ pet: () => (win && !win.isDestroyed() && win.isVisible() ? win.getBounds() : null), menu: popupMenu, approve: patApprove });
   if (settings.skin === 'clawd') applyOutfit();
-  updater.init({ text, changed: () => { if (settingsWin && !settingsWin.isDestroyed()) settingsWin.webContents.send('changed', settingsState()); } });
+  updater.init({ text, open: openSettings, changed: () => { if (settingsWin && !settingsWin.isDestroyed()) settingsWin.webContents.send('changed', settingsState()); } });
 });
 app.on('window-all-closed', () => app.quit());
