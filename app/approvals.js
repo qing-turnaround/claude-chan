@@ -153,7 +153,12 @@ function approveOldest() {
   return true;
 }
 
+// unlinked: every open card goes back to the terminal
+function dropAll() { [...pending].forEach((e) => reply(e, null)); }
+
 const count = () => pending.length;
 const relayout = () => { if (win && !win.isDestroyed() && win.isVisible()) win.webContents.send('view', view()); };
 
-module.exports = { init, add, sessionMoved, count, relayout, approveOldest };
+const raise = () => { if (win && !win.isDestroyed() && win.isVisible()) win.moveTop(); };
+
+module.exports = { init, add, sessionMoved, count, relayout, approveOldest, dropAll, raise };

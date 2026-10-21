@@ -188,8 +188,19 @@ function popupMenu(owner) {
     { type: 'separator' },
     { label: T.quit, click: () => app.quit() },
   ];
-  Menu.buildFromTemplate(tpl).popup({ window: owner || win });
+  menuOpen = true;
+  Menu.buildFromTemplate(tpl).popup({ window: owner || win, callback: () => { menuOpen = false; } });
 }
+let menuOpen = false;
+
+// Windows: an always-on-top window the user clicks goes above ours; every so often put ours back on top (pet, then
+// the approval card over it), without taking focus. Not while a menu is open, which would end up underneath
+if (process.platform === 'win32') setInterval(() => {
+  if (menuOpen) return;
+  if (win && !win.isDestroyed() && win.isVisible()) win.moveTop();
+  critters.raise();
+  approvals.raise();
+}, 1500);
 ipcMain.on('menu', () => popupMenu(win));
 
 // ---------- Settings: one place that changes things, used by the menu and the Settings window ----------
@@ -258,6 +269,17 @@ function toggleHooks(on) {
   } catch (e) {
     dialog.showMessageBox(win, { type: 'error', message: `${i18n(settings.lang, app.getLocale()).cantEdit} ${claude.SETTINGS}`, detail: String(e.message || e) });
   }
+  checkLinked();
+}
+
+// Unlinked (from the menu, or the hooks taken out of settings.json by hand): a Claude Code that's already running
+// keeps the hooks it started with and keeps calling, so from now on its events are ignored, and whatever it was
+// doing is dropped: the pets stop working, open cards go back to the terminal
+let linked = false;
+function checkLinked() {
+  const now = claude.isInstalled();
+  if (linked && !now) { claude.reset(); approvals.dropAll(); pushStatus('idle'); }
+  linked = now;
 }
 
 // Push to the UI; push even if the status is unchanged (the UI uses it to extend the "working" timeout)
@@ -269,7 +291,7 @@ function pushStatus(s) {
   win.webContents.send('status', s);
   critters.status(s);
 }
-setInterval(() => { const a = claude.aggregate(); if (a !== lastStatus) pushStatus(a); }, 5e3);
+setInterval(() => { checkLinked(); const a = claude.aggregate(); if (a !== lastStatus) pushStatus(a); }, 5e3);
 
 function resize() {
   critters.setScale(scale());
@@ -317,6 +339,7 @@ http.createServer((req, res) => {
     req.on('data', c => body += c);
     req.on('end', () => {
       try {
+        if (!linked) throw 0;                               // unlinked: ignore what a running Claude Code still sends
         const payload = JSON.parse(body);
         // the session moved on: an approval card still open for it was answered in the terminal
         if (['PostToolUse', 'UserPromptSubmit', 'Stop', 'StopFailure', 'SessionEnd'].includes(payload.hook_event_name)) approvals.sessionMoved(payload.session_id);
@@ -331,6 +354,7 @@ http.createServer((req, res) => {
     req.on('end', () => {
       let payload;
       try { payload = JSON.parse(body); } catch { res.writeHead(204); return res.end(); }
+      if (!linked) { res.writeHead(204); return res.end(); }   // unlinked: Claude Code asks in the terminal
       // recording: requests from other sessions go back to their own terminal, off camera
       if (!claude.inFocus(payload)) { res.writeHead(204); return res.end(); }
       pushStatus(claude.onEvent(payload));
@@ -376,6 +400,10 @@ http.createServer((req, res) => {
     let body = '';
     req.on('data', c => body += c);
     req.on('end', () => { critters.debugDrag(req.url.split('?')[1] || 'red', JSON.parse(body).map(([x, y]) => ({ x, y }))); res.end('ok'); });
+  } else if (process.env.PET_DEBUG && req.method === 'POST' && req.url === '/apply') {   // tests only: {key, value}, as from Settings
+    let body = '';
+    req.on('data', c => body += c);
+    req.on('end', () => { try { const { key, value } = JSON.parse(body); apply(key, value); } catch {} res.end('ok'); });
   } else if (process.env.PET_DEBUG && req.method === 'POST' && req.url === '/update') {   // tests only: same as the Settings button
     updater.act(); res.end(JSON.stringify(updater.state()));
   } else if (req.url === '/settings-state') {   // debug: what the Settings window is given (or why it fails)
@@ -435,6 +463,7 @@ app.whenReady().then(() => {
   approvals.init({ pet: () => (win && !win.isDestroyed() && win.isVisible() ? win.getBounds() : null), text, decided: (id) => pushStatus(claude.resolved(id)) });
   // hooks put in by an older version (no approval card, no process id): bring them up to date
   try { if (claude.isInstalled() && !claude.isCurrent()) claude.install(); } catch {}
+  linked = claude.isInstalled();
   critters.init({ pet: () => (win && !win.isDestroyed() && win.isVisible() ? win.getBounds() : null), menu: popupMenu, approve: patApprove });
   if (settings.skin === 'clawd') applyOutfit();
   updater.init({ text, open: openSettings, changed: () => { if (settingsWin && !settingsWin.isDestroyed()) settingsWin.webContents.send('changed', settingsState()); } });

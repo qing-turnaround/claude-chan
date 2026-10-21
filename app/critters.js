@@ -168,6 +168,13 @@ function physics(k) {
   if (f.y >= y1) { f.y = y1; land(k, 'floor'); }
 }
 
+// Windows: another always-on-top window that gets clicked (some terminals and browsers pin themselves) goes above
+// ours, and a Clawd under it can't be seen or picked up. Put ours back on top, the one riding last, then the pile
+function raise() {
+  const order = [...active].sort((a, b) => (C[a].rideOn ? 1 : 0) - (C[b].rideOn ? 1 : 0));
+  for (const w of [...order.map((k) => C[k].win), pile.win]) if (w && !w.isDestroyed() && w.isVisible()) w.moveTop();
+}
+
 // ---- the two of them ----
 function startRide(rider) {
   const carrier = other(rider);
@@ -543,6 +550,6 @@ function debugPlace(k, where) {
   const x = x0 + w * t, y = y0 + h * t;
   C[k].free = null; C[k].rideOn = null; C[k].goal = null; C[k].s = sOn(edge, x, y); setMode(k, 'walk', 0);
 }
-const debugState = () => active.map((k) => ({ kind: k, mode: C[k].mode, dir: C[k].dir, free: C[k].free, rideOn: C[k].rideOn, pos: centre(k), pile: pile.count, queue, roam, working }));
+const debugState = () => active.map((k) => ({ kind: k, mode: C[k].mode, dir: C[k].dir, free: C[k].free, rideOn: C[k].rideOn, pos: centre(k), press: C[k].press, drag: C[k].drag, pile: pile.count, queue, roam, working }));
 
-module.exports = { debugPlace, init, show, setScale, setRoam, status, pulse, shot, debugState, debugMode, debugDrag };
+module.exports = { debugPlace, init, show, setScale, setRoam, status, pulse, raise, shot, debugState, debugMode, debugDrag };

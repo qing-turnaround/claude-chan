@@ -126,4 +126,7 @@ function resolved(id) {
 // debug: every session, newest first
 const list = () => (aggregate(), [...sessions].map(([id, s]) => ({ id, ...s })).sort((a, b) => b.t - a.t));
 
-module.exports = { inFocus, install, uninstall, isInstalled, isCurrent, onEvent, aggregate, list, resolved, setFocus, SETTINGS };
+// unlinked: forget every session, so nothing is left working or waiting
+const reset = () => sessions.clear();
+
+module.exports = { inFocus, install, uninstall, isInstalled, isCurrent, onEvent, aggregate, list, resolved, setFocus, reset, SETTINGS };
