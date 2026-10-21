@@ -247,8 +247,12 @@ ipcMain.handle('settings-state', () => settingsState());
 const patApprove = () => settings.patApprove !== false && approvals.approveOldest();
 ipcMain.handle('pat-approve', () => patApprove());
 ipcMain.on('settings-set', (_e, key, v) => apply(key, v));
-// the window is exactly as tall as its content
-ipcMain.on('settings-height', (_e, h) => { if (settingsWin && !settingsWin.isDestroyed()) settingsWin.setContentSize(460, Math.min(900, Math.ceil(h))); });
+// the window is exactly as tall as its content, up to the height of the screen it's on (then the page scrolls)
+ipcMain.on('settings-height', (_e, h) => {
+  if (!settingsWin || settingsWin.isDestroyed()) return;
+  const room = screen.getDisplayMatching(settingsWin.getBounds()).workArea.height - 60;
+  settingsWin.setContentSize(460, Math.min(room, Math.ceil(h) + 2));   // + 2: rounding at 150% scaling left a scrollbar
+});
 
 // Launch at login is off by default; the user turns it on in the menu. In dev mode execPath is the bare electron.exe, so the app directory must be passed too
 function loginOpts() {

@@ -63,11 +63,12 @@ Five outfits. Right-click → **Outfit** to switch, or pick one in **Settings…
 <p align="center"><img src="docs/clawd.gif" width="480"></p>
 
 - They crawl around the edges of your screen, up the walls and upside down across the top
-- While Claude Code works, the red one types at a little laptop; the pink one cheers with a flag, fetches coffee, and hauls a code block onto a pile for every step. When it's done the pile sparkles away and they cheer
+- While Claude Code works, the red one types at a little laptop; the pink one cheers with a flag, fetches coffee, and hauls a code block onto a pile for every step; at 6 blocks the pink one eats the lot. When it's done the pile sparkles away and they cheer
 - When it needs your approval they raise a hand with a "!"; double-click the one raising its hand to approve
 - Pick one up and throw it, and it falls, squashes and gets dizzy; let go next to a wall and it grabs on
 - Now and then they chase each other, walk off hand in hand, or one rides on the other's head
 - When nothing is going on they wander a bit and rest a lot, and fall asleep when you step away
+- They can fly (Settings → **Flight**: pixel wings, jets or a propeller beanie): now and then one flies over to another spot on the edge; toss one gently and it floats down onto its feet, throw it hard and it still lands dizzy in a puff of smoke
 
 ## Also
 
@@ -132,13 +133,14 @@ Everything starts with **right-clicking her** (with Clawd, right-click either on
 
 In Settings:
 
-- **Outfit**, and which Clawds to show
+- **Outfit**; with Clawd, which ones to show and how they fly (off / pixel wings / jets / propeller beanie)
 - **Size**: a 50–200% slider, the pet follows it live; ↺ resets it
 - **Free roaming**, **Link Claude Code**
 - **Double-click to approve**: on by default
 - **Launch at startup**: off by default
 - **Language**: follows your system (English / 简体中文 / 繁體中文 / 日本語) unless you pick one
 - **Check for updates**: shows where things stand; when there's a new version it becomes **Update**
+- **Remove from Claude Code**: takes the pet's hooks out for good (switching **Link Claude Code** off only pauses)
 
 ## Development
 

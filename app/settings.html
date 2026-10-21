@@ -7,7 +7,7 @@
 <style>
   :root { --bg: #FAF6EF; --card: #FFFFFF; --ink: #2B2220; --mute: #8A7F78; --line: #EFE7DB; --accent: #D97757; --tint: #FDF1EB; }
   * { box-sizing: border-box; }
-  html { overflow: hidden; }
+  html { overflow-x: hidden; overflow-y: auto; }   /* scrolls only on a screen too short for all of it */
   body { margin: 0; padding: 18px 20px 20px; background: var(--bg); color: var(--ink);
          font: 14px/1.45 "Segoe UI", "Microsoft YaHei UI", "Yu Gothic UI", sans-serif; user-select: none; }
 
@@ -15,6 +15,10 @@
   .app img { width: 44px; height: 44px; }
   .app .name { font-size: 17px; font-weight: 700; }
   .app .ver { font-size: 12px; color: var(--mute); }
+  #upHint:not(:empty)::before { content: " · "; }
+  .app .btn { margin-left: auto; }
+  .link { display: block; width: fit-content; margin-top: 2px; color: var(--mute); font-size: 12px; text-decoration: underline; cursor: pointer; }
+  .link:hover { color: var(--accent); }
 
   h2 { font-size: 12px; color: var(--mute); margin: 18px 4px 6px; font-weight: 600; }
   .card { background: var(--card); border: 1px solid var(--line); border-radius: 14px; padding: 2px 16px; }
@@ -71,7 +75,8 @@
 </style>
 </head>
 <body>
-  <div class="app"><img src="assets/icon.png"><div><div class="name">Claude-chan</div><div class="ver" id="ver"></div></div></div>
+  <div class="app"><img src="assets/icon.png"><div><div class="name">Claude-chan</div><div class="ver"><span id="ver"></span><span id="upHint"></span></div></div>
+    <button class="btn" id="upBtn"></button></div>
 
   <h2 id="secLook"></h2>
   <div class="card">
@@ -88,7 +93,7 @@
   <div class="card">
     <div class="row"><div class="label"><div id="roamLabel"></div><div class="hint" id="roamHint"></div></div>
       <label class="sw"><input type="checkbox" id="roam"><span></span></label></div>
-    <div class="row"><div class="label"><div id="linkLabel"></div><div class="hint" id="linkHint"></div></div>
+    <div class="row"><div class="label"><div id="linkLabel"></div><div class="hint"><span id="linkHint"></span> <a class="link" id="unhook"></a></div></div>
       <label class="sw"><input type="checkbox" id="link"><span></span></label></div>
     <div class="row"><div class="label"><div id="patLabel"></div><div class="hint" id="patHint"></div></div>
       <label class="sw"><input type="checkbox" id="pat"><span></span></label></div>
@@ -98,8 +103,6 @@
   <div class="card">
     <div class="row"><div class="label" id="loginLabel"></div><label class="sw"><input type="checkbox" id="login"><span></span></label></div>
     <div class="row"><div class="label" id="langLabel"></div><select id="lang"></select></div>
-    <div class="row" id="unhookRow"><div class="label"><div id="unhookLabel"></div><div class="hint" id="unhookHint"></div></div><button class="btn" id="unhookBtn"></button></div>
-    <div class="row"><div class="label"><div id="upLabel"></div><div class="hint" id="upHint"></div></div><button class="btn" id="upBtn"></button></div>
   </div>
 
   <script src="settings.js"></script>
