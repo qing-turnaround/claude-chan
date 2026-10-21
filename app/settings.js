@@ -15,6 +15,35 @@ function clawd(x, color, flower) {
   </g>`;
 }
 const CLAWD_CARD = `<svg viewBox="-8 0 122 56">${clawd(0, COLORS.red)}${clawd(60, COLORS.pink, true)}</svg>`;
+
+// flight gear on a red Clawd, as drawn in the air (critter-renderer.js): pixel wings, jet flames, propeller beanie
+const WING = [[4, -5], [5, -5], [2, -4], [3, -4], [4, -4], [5, -4], [6, -4], [1, -3], [2, -3], [3, -3], [4, -3], [5, -3], [6, -3],
+  [0, -2], [1, -2], [2, -2], [3, -2], [4, -2], [5, -2], [6, -2], [0, -1], [1, -1], [2, -1], [3, -1], [4, -1], [5, -1],
+  [0, 0], [1, 0], [3, 0], [4, 0], [0, 1]];
+function pixelWing(x0, y0, side) {
+  const P = 3, on = new Set(WING.map(([c, r]) => c + ',' + r)), px = (c) => x0 + side * c * P + (side < 0 ? -P : 0);
+  let cells = '', edges = '';
+  for (const [c, r] of WING) {
+    const x = px(c), y = y0 + r * P;
+    cells += `<rect x="${x}" y="${y}" width="${P}" height="${P}" fill="${r >= -1 ? '#ECE6F1' : '#FFFFFF'}"/>`;
+    const has = (dc, dr) => on.has((c + dc) + ',' + (r + dr));
+    if (!has(0, -1)) edges += `M${x} ${y}h${P}`;
+    if (!has(0, 1)) edges += `M${x} ${y + P}h${P}`;
+    if (!has(side > 0 ? -1 : 1, 0)) edges += `M${x} ${y}v${P}`;
+    if (!has(side > 0 ? 1 : -1, 0)) edges += `M${x + P} ${y}v${P}`;
+  }
+  return cells + `<path d="${edges}" stroke="#2B2220" stroke-width="1.6" stroke-linecap="square" fill="none"/>`;
+}
+const GEAR = {
+  off: '',
+  wings: pixelWing(43, 16, 1) + pixelWing(2, 16, -1),
+  jets: [12.5, 32.5].map((x) => `<path d="M${x - 5} 52 Q${x} 72 ${x + 5} 52Z" fill="#F6C445" stroke="#2B2220" stroke-width="1.6" stroke-linejoin="round"/>`
+    + `<path d="M${x - 2.4} 52 Q${x} 63 ${x + 2.4} 52Z" fill="#D97757"/>`).join(''),
+  rotor: '<g stroke="#2B2220" stroke-width="1.8"><path d="M15 12a7.5 7.5 0 0 1 15 0Z" fill="#6FA8DC"/><path d="M22.5 4.5v-4" fill="none"/>'
+    + '<ellipse cx="22.5" cy="0" rx="14" ry="2.6" fill="#F6C445"/><circle cx="22.5" cy="0" r="1.8" fill="#E2453C"/></g>',
+};
+// the wings and the beanie go behind / over the body, the flames under the feet
+const FLIGHT_CARD = (k) => `<svg viewBox="-21 -5 87 69">${k === 'wings' ? GEAR.wings : ''}${clawd(0, COLORS.red)}${k !== 'wings' ? GEAR[k] : ''}</svg>`;
 const CLAWD_CHIP = (k) => `<svg viewBox="-6 0 57 56">${clawd(0, COLORS[k], k === 'pink')}</svg>`;
 
 let st = null, dragging = false, pending = null;
@@ -45,13 +74,14 @@ function render(s) {
     return el;
   }));
 
-  $('clawdRow').style.display = $('wingsRow').style.display = s.skin === 'clawd' ? '' : 'none';
-  $('wingsLabel').textContent = T.wings;
-  $('wingChips').replaceChildren(...['red', 'pink'].map((k) => {
+  $('clawdRow').style.display = $('flightRow').style.display = s.skin === 'clawd' ? '' : 'none';
+  $('flightLabel').textContent = T.flight;
+  $('flights').replaceChildren(...['off', 'wings', 'jets', 'rotor'].map((k) => {
     const el = document.createElement('div');
-    el.className = 'chip' + (s.wings.includes(k) ? ' on' : '');
-    el.innerHTML = CLAWD_CHIP(k) + T.clawd[k];
-    el.onclick = () => api.set('wings', { kind: k, on: !s.wings.includes(k) });
+    el.className = 'outfit' + (s.flight === k ? ' on' : '');
+    el.title = T.flights[k];
+    el.innerHTML = FLIGHT_CARD(k) + `<div>${T.flights[k]}</div>`;
+    el.onclick = () => api.set('flight', k);
     return el;
   }));
   $('chips').replaceChildren(...['red', 'pink'].map((k) => {

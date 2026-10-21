@@ -32,10 +32,13 @@ let working = false, queue = 0, coffeeNext = 0;
 const pile = { s: 0, count: 0, win: null, flashUntil: 0, side: 1, eatStart: 0 };
 const PILE_MAX = 6;        // two rows; then the pink one eats the lot so it never stands in the way
 const EAT_MS = 3000;       // gulp the blocks one by one, chew, burp
-// angel wings (Settings > Accessory): a gentle throw is caught and it flutters down; thrown hard it still tumbles
-// and gets dizzy, losing a couple of feathers. Now and then one flies over to another spot on the edge
-let wings = [];           // which kinds wear them
-const GLIDE_MAX = 14;     // release speed (px per tick) below which the wings catch it
+// flight (Settings > Look): 'wings' (pixel wings), 'jets' (flames under the feet) or 'rotor' (a propeller beanie),
+// shown only in the air; 'off' = no flying. With one on, a gentle throw is caught and it floats down; thrown hard it
+// still tumbles and gets dizzy, with a puff of smoke. Now and then one flies over to another spot on the edge
+const FLIGHT = ['off', 'wings', 'jets', 'rotor'];
+let flight = 'off';
+const flies = () => flight !== 'off';
+const GLIDE_MAX = 14;     // release speed (px per tick) below which it's caught
 
 const rand = (a, b) => a + Math.random() * (b - a);
 let fakeCursor = null;     // debug: a scripted cursor, so drags can be tested without moving the real mouse
@@ -116,7 +119,7 @@ const fresh = (k, P) => ({
   after: null,                           // called when the current timed mode ends
   mugUntil: 0,                           // a coffee is sitting next to its laptop
   flight: null,                          // { a, b, ctrl, s, t0, dur } flying over to perimeter position s
-  flyNext: Date.now() + rand(60000, 180000), featherAt: 0,
+  flyNext: Date.now() + rand(60000, 180000), puffAt: 0,
 });
 
 function setMode(k, mode, ms) { C[k].mode = mode; C[k].until = Date.now() + ms; }
@@ -156,7 +159,7 @@ function release(k) {
   if (slow && f.x - x0 < STICK * SC) return land(k, 'left');
   if (slow && x1 - f.x < STICK * SC) return land(k, 'right');
   f.from = f.y;
-  if (wings.includes(k) && Math.hypot(f.vx, f.vy) < GLIDE_MAX) { f.glide = true; return setMode(k, 'glide', 1e12); }
+  if (flies() && Math.hypot(f.vx, f.vy) < GLIDE_MAX) { f.glide = true; return setMode(k, 'glide', 1e12); }
   setMode(k, 'fall', 1e12);
 }
 
@@ -167,7 +170,7 @@ function land(k, edge) {
   if (edge === 'floor' && f.glide) setMode(k, 'hop', 800);           // fluttered down: lands on its feet
   else if (edge === 'floor') {
     setMode(k, 'land', 280); st.afterLand = drop > 160 ? 'dizzy' : null;
-    if (wings.includes(k) && (drop > 160 || f.crash)) st.featherAt = Date.now();   // a hard landing costs feathers
+    if (flies() && (drop > 160 || f.crash)) st.puffAt = Date.now();   // a hard landing: a puff of smoke
   }
   else setMode(k, 'look', 900);
 }
@@ -391,7 +394,7 @@ function tick() {
     if (st.mode === 'walk' && now > st.nextPause) {
       // a short walk, then a rest: look around, sit, stretch or doze; next to the other one, sit together
       const o = C[other(k)];
-      if (wings.includes(k) && roam && !working && now > st.flyNext) { st.flyNext = now + rand(150000, 300000); startFlight(k); }
+      if (flies() && roam && !working && now > st.flyNext) { st.flyNext = now + rand(150000, 300000); startFlight(k); }
       else if (Math.random() < 0.2) { st.dir = -st.dir; st.nextPause = now + rand(2500, 6000); }
       else if (o && active.includes(other(k)) && !busy(o) && Math.abs(along(st.s, o.s)) < 140 * SC && Math.random() < 0.5) {
         st.dir = along(st.s, o.s) > 0 ? 1 : -1; setMode(k, 'sit', rand(6000, 12000));
@@ -434,7 +437,7 @@ function tick() {
       hand: st.mode === 'hold' ? (k === holdLead ? 'back' : 'front') : null,
       cursor: { x: cur.x - Math.round(p.x - W / 2), y: cur.y - Math.round(p.y - W / 2) },   // in window px, for hit testing
       moving: roam && SPEEDS[st.mode] !== undefined && !st.rideOn, scale: SC,
-      wings: wings.includes(k), feather: st.featherAt ? now - st.featherAt : -1,
+      flight: flies() ? flight : null, puff: st.puffAt ? now - st.puffAt : -1,
     });
   }
 }
@@ -466,7 +469,7 @@ function startFlight(k) {
   setMode(k, 'fly', 1e12);
 }
 
-function setWings(list) { wings = Array.isArray(list) ? list : []; }
+function setFlight(v) { flight = FLIGHT.includes(v) ? v : 'off'; }
 function setScale(v) { SC = v; }
 function setRoam(on) {
   roam = on;
@@ -588,4 +591,4 @@ function debugPlace(k, where) {
 }
 const debugState = () => active.map((k) => ({ kind: k, mode: C[k].mode, dir: C[k].dir, free: C[k].free, rideOn: C[k].rideOn, pos: centre(k), press: C[k].press, drag: C[k].drag, pile: pile.count, queue, roam, working }));
 
-module.exports = { debugPlace, init, show, setScale, setRoam, setWings, status, pulse, shot, debugState, debugMode, debugDrag };
+module.exports = { debugPlace, init, show, setScale, setRoam, setFlight, status, pulse, shot, debugState, debugMode, debugDrag };

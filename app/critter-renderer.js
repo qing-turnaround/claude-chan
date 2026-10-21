@@ -65,8 +65,7 @@ function faceFor(m, now) {
     case 'rally': return { eyes: 'happy', mouth: 'grin' };
     case 'stretch': return { eyes: 'shut', mouth: 'o' };
     case 'doze': return { eyes: 'shut', mouth: 'small' };
-    case 'fly': return { eyes: 'happy', mouth: 'grin' };
-    case 'glide': return { eyes: 'happy', mouth: 'o' };
+    case 'fly': case 'glide': return { eyes: 'happy', mouth: 'smile' };          // confident, not goofy
     case 'eat': {                                                   // gulp, chew, burp (see EAT_MS)
       const t = now - modeSince;
       if (t < 1450) return { eyes: 'happy', mouth: 'chomp' };
@@ -126,22 +125,66 @@ function laptop(L, now) {
   });
 }
 
-// angel wings behind the body: three tiers of white feathers from a root at the top corner; side = -1 / 1.
-// rot turns the wing about its root, positive = folded down against the body
+// flight gear (pose.flight: 'wings' | 'jets' | 'rotor'), only in the air: flying, floating down after a gentle
+// throw, tumbling after a hard one. It comes out and goes away eased, so it pops in rather than appearing
+const AIRBORNE = ['fly', 'glide', 'fall'];
+let gearOut = 0;                                  // 0 away .. 1 out
+
+// pixel wings: an 8-bit wing of 4 px cells, notched feather tips underneath, from the top corner of the body
+const WING = [[4, -5], [5, -5], [2, -4], [3, -4], [4, -4], [5, -4], [6, -4], [1, -3], [2, -3], [3, -3], [4, -3], [5, -3], [6, -3],
+  [0, -2], [1, -2], [2, -2], [3, -2], [4, -2], [5, -2], [6, -2], [0, -1], [1, -1], [2, -1], [3, -1], [4, -1], [5, -1],
+  [0, 0], [1, 0], [3, 0], [4, 0], [0, 1]];
+const WING_ON = new Set(WING.map(([c, r]) => c + ',' + r));
 function wing(side, rot, scale) {
-  g.save(); g.translate(side * 20, -9); g.scale(side * scale, scale); g.rotate(rot);
-  g.lineWidth = 1.8; g.strokeStyle = INK;
-  [[11, 2.5, 9.5, 4.5, 0.05, '#F1ECF4'], [14, -4, 12.5, 5.5, -0.25, '#FFFFFF'], [11, -11, 13, 6.5, -0.55, '#FFFFFF']].forEach(([x, y, rx, ry, a, fill]) => {
-    g.beginPath(); g.ellipse(x, y, rx, ry, a, 0, Math.PI * 2); g.fillStyle = fill; g.fill(); g.stroke();
-  });
+  const P = 4;
+  g.save(); g.translate(side * 20, -10); g.scale(side * scale, scale); g.rotate(rot);
+  for (const [c, r] of WING) { g.fillStyle = r >= -1 ? '#ECE6F1' : '#FFFFFF'; g.fillRect(c * P, r * P, P, P); }
+  g.beginPath();                                  // outline: every cell edge with no neighbour on that side
+  for (const [c, r] of WING) {
+    const x = c * P, y = r * P, has = (dc, dr) => WING_ON.has((c + dc) + ',' + (r + dr));
+    if (!has(0, -1)) { g.moveTo(x, y); g.lineTo(x + P, y); }
+    if (!has(0, 1)) { g.moveTo(x, y + P); g.lineTo(x + P, y + P); }
+    if (!has(-1, 0)) { g.moveTo(x, y); g.lineTo(x, y + P); }
+    if (!has(1, 0)) { g.moveTo(x + P, y); g.lineTo(x + P, y + P); }
+  }
+  g.lineWidth = 2; g.lineCap = 'square'; g.strokeStyle = INK; g.stroke();
   g.restore();
 }
-function wingPose(m, now, moving) {
-  if (['sit', 'type', 'sleep', 'doze', 'eat', 'brew', 'ride', 'carry'].includes(m)) return [0.45, 0.85];   // folded
-  if (m === 'fly' || m === 'glide') return [-0.15 + Math.sin(now / 70) * 0.55, 1];
-  if (m === 'held' || m === 'fall' || m === 'slip') return [Math.sin(now / 45) * 0.7, 1];             // flailing
-  if (moving) return [-0.2 + Math.sin(now / 260) * 0.15, 1];
-  return [-0.25 + Math.sin(now / 900) * 0.06, 1];
+function wingRot(m, now) {
+  if (m === 'fall') return Math.sin(now / 45) * 0.7;                  // tumbling: flapping wildly, no use
+  return -0.1 + Math.sin(now / (m === 'glide' ? 90 : 70)) * 0.5;
+}
+
+// propeller beanie: a blue cap with a yellow propeller, spinning (flat ellipse whose width swings)
+function rotor(m, now, scale) {
+  const turn = m === 'fall' ? now / 160 + Math.sin(now / 90) : now / (m === 'glide' ? 60 : 38);
+  g.save(); g.translate(0, -14); g.scale(scale, scale);
+  g.lineWidth = 2.2; g.strokeStyle = INK; g.lineJoin = 'round';
+  g.beginPath(); g.arc(0, 0, 9, Math.PI, 0); g.closePath(); g.fillStyle = '#6FA8DC'; g.fill(); g.stroke();
+  g.beginPath(); g.moveTo(0, -9); g.lineTo(0, -15); g.stroke();
+  g.beginPath(); g.ellipse(0, -16, Math.abs(Math.cos(turn)) * 16 + 4, 3, 0, 0, Math.PI * 2); g.fillStyle = '#F6C445'; g.fill(); g.stroke();
+  g.beginPath(); g.arc(0, -16, 2.2, 0, Math.PI * 2); g.fillStyle = '#E2453C'; g.fill(); g.stroke();
+  g.restore();
+}
+
+// jets: a little flame under each pair of feet. Flying: steady with a flicker; floating down: smaller, holding it
+// up; tumbling: sputtering
+function jet(x, len) {
+  g.save(); g.translate(x, 31);
+  g.beginPath(); g.moveTo(-5.5, 0); g.quadraticCurveTo(0, len * 2, 5.5, 0); g.closePath();
+  g.fillStyle = '#F6C445'; g.fill(); g.lineWidth = 1.8; g.strokeStyle = INK; g.lineJoin = 'round'; g.stroke();
+  g.beginPath(); g.moveTo(-2.8, 0); g.quadraticCurveTo(0, len, 2.8, 0); g.closePath(); g.fillStyle = ORANGE; g.fill();
+  g.restore();
+}
+function jetLen(m, now, i) {
+  if (m === 'fall') return Math.max(0, Math.sin(now / 37 + i * 2.1)) * 7;          // sputtering
+  const flicker = Math.sin(now / 45 + i * 1.7) * 1.5 + Math.sin(now / 23 + i) * 0.8;
+  return (m === 'glide' ? 8 : 11) + flicker;
+}
+// a puff of smoke from the feet after a hard landing with the jets on
+function puff(x, y, r, a) {
+  g.save(); g.globalAlpha = a; g.beginPath(); g.arc(x, y, r, 0, Math.PI * 2);
+  g.fillStyle = '#9C9590'; g.fill(); g.lineWidth = 1.4; g.strokeStyle = INK; g.stroke(); g.restore();
 }
 
 function star(cx, cy, r) {
@@ -278,7 +321,11 @@ function draw() {
   if (m === 'stretch') { const t = Math.sin(Math.min(1, (now - modeSince) / 2400) * Math.PI); g.translate(0, 19); g.scale(1 - t * 0.04, 1 + t * 0.1); g.translate(0, -19); }
   g.translate(0, sit);
   if (m === 'glide') g.rotate(Math.sin(now / 300) * 0.08);                  // swaying as it floats down
-  if (pose.wings) { const [rot, sc] = wingPose(m, now, moving); wing(-1, rot, sc); wing(1, rot, sc); }
+  gearOut += ((pose.flight && AIRBORNE.includes(m) ? 1 : 0) - gearOut) * 0.25;
+  const gear = gearOut > 0.03 ? pose.flight || lastGear : null;      // keeps drawing while it goes away
+  if (pose.flight) lastGear = pose.flight;
+  if (gear === 'jets') [-11, 11].forEach((x, i) => jet(x, jetLen(m, now, i) * gearOut));
+  if (gear === 'wings') { const rot = wingRot(m, now); wing(-1, rot, gearOut); wing(1, rot, gearOut); }
 
   // arms: nubs on both sides; waving / cheering / being held raise them
   const wave = m === 'wave' ? Math.sin(now / 110) * 0.7 - 0.9 : 0;
@@ -349,6 +396,8 @@ function draw() {
     g.restore();
   }
 
+  if (gear === 'rotor') rotor(m, now, gearOut);                         // over the flower
+
   // carried on the head (drawn over the flower)
   if (m === 'haul') block(0, -23 - Math.abs(Math.sin(walkPhase)) * 1.5, 1);
   if (m === 'fetch') mug(0, -21 - Math.abs(Math.sin(walkPhase)) * 1.5, true);
@@ -412,16 +461,10 @@ function draw() {
       star(0, 0, 3.6); g.restore();
     }
   }
-  // a hard landing with wings on: two feathers drift down past it
-  if (pose.feather >= 0 && pose.feather < 1800) {
-    const p = pose.feather / 1800;
-    [[-32, 0], [33, 1]].forEach(([x, i]) => {           // beside the body, clear of the face
-      g.save(); upright(x + Math.sin(p * 6 + i * 2) * 4, -30 + p * 50);
-      g.globalAlpha = Math.min(1, (1 - p) / 0.4); g.rotate(Math.sin(p * 5 + i) * 0.7);   // off the wing, fading at the end
-      g.beginPath(); g.ellipse(0, 0, 3.2, 7.5, 0, 0, Math.PI * 2); g.fillStyle = '#FFFFFF'; g.fill();
-      g.lineWidth = 1.3; g.strokeStyle = INK; g.stroke(); g.beginPath(); g.moveTo(0, -7.5); g.lineTo(0, 10); g.stroke();
-      g.restore();
-    });
+  // a hard landing with the jets on: two puffs of smoke billow out from the feet and fade
+  if (pose.puff >= 0 && pose.puff < 1400) {
+    const p = pose.puff / 1400;
+    [-1, 1].forEach((s) => puff(s * (16 + p * 16), 28 - p * 12, 4 + p * 5, 0.85 * (1 - p)));
   }
   // heart above the head when they meet
   if (heartT >= 0) {
@@ -435,7 +478,7 @@ function draw() {
     if (heartT >= 1) heartT = -1;
   }
 }
-let shown = 0, dropT = 0, eatT0 = 0;
+let shown = 0, dropT = 0, eatT0 = 0, lastGear = null;
 function drawBlocks() {
   const now = performance.now();
   g.setTransform(dpr * SC, 0, 0, dpr * SC, 0, 0);
