@@ -25,7 +25,7 @@ const BASE_W = 300, BASE_H = 320;
 const SKINS = ['hoodie', 'scholar', 'maid', 'spirit'];
 
 const settingsFile = path.join(app.getPath('userData'), 'settings.json');
-let settings = { patApprove: true, size: 1, roam: true, x: null, y: null, skin: 'hoodie', lang: 'auto', clawd: ['red', 'pink'] };
+let settings = { wings: [], patApprove: true, size: 1, roam: true, x: null, y: null, skin: 'hoodie', lang: 'auto', clawd: ['red', 'pink'] };
 try { Object.assign(settings, JSON.parse(fs.readFileSync(settingsFile, 'utf8'))); } catch {}
 // older versions stored S / M / L
 if (typeof settings.size !== 'number') settings.size = { S: 0.75, M: 1, L: 1.35 }[settings.size] || 1;
@@ -204,6 +204,12 @@ function apply(key, v) {
       break;
     }
     case 'size': settings.size = Math.round(Math.min(SIZE_MAX, Math.max(SIZE_MIN, Number(v) || 1)) * 100) / 100; resize(); break;
+    case 'wings': {
+      const now = Array.isArray(settings.wings) ? settings.wings : [];
+      settings.wings = ['red', 'pink'].filter((x) => (x === v.kind ? v.on : now.includes(x)));
+      critters.setWings(settings.wings);
+      break;
+    }
     case 'roam': settings.roam = !!v; win.webContents.send('roam', settings.roam); critters.setRoam(settings.roam); break;
     case 'link': setLinked(!!v); break;
     case 'unhook': removeHooks(); break;
@@ -221,7 +227,7 @@ function settingsState() {
   return {
     T, langs: i18n.LANGS.map(k => [k, i18n.NATIVE[k]]),
     outfits: SKINS.filter(k => fs.existsSync(path.join(__dirname, 'assets', 'skins', k, 'idle.webp'))).concat('clawd'),
-    skin: settings.skin, clawd: clawdKinds(), size: scale(), sizeMin: SIZE_MIN, sizeMax: SIZE_MAX,
+    skin: settings.skin, clawd: clawdKinds(), wings: Array.isArray(settings.wings) ? settings.wings : [], size: scale(), sizeMin: SIZE_MIN, sizeMax: SIZE_MAX,
     roam: settings.roam, link: linked, hooks: claude.isInstalled(), login: app.getLoginItemSettings(loginOpts()).openAtLogin,
     lang: i18n.LANGS.includes(settings.lang) ? settings.lang : 'auto', version: app.getVersion(), canLogin: !LINUX, patApprove: settings.patApprove !== false,
     update: updater.state(),
@@ -460,7 +466,7 @@ if (!app.requestSingleInstanceLock()) app.quit();
 app.whenReady().then(() => {
   if (process.platform === 'win32') app.setAppUserModelId('com.qing.claudechan');   // so update notifications show
   createWindow();
-  critters.setScale(scale()); critters.setRoam(settings.roam);
+  critters.setScale(scale()); critters.setRoam(settings.roam); critters.setWings(settings.wings);
   const text = () => i18n(settings.lang, app.getLocale());
   approvals.init({ pet: () => (win && !win.isDestroyed() && win.isVisible() ? win.getBounds() : null), text, decided: (id) => pushStatus(claude.resolved(id)) });
   // hooks put in by an older version (no approval card, no process id): bring them up to date

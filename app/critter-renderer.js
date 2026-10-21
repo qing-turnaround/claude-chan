@@ -65,6 +65,8 @@ function faceFor(m, now) {
     case 'rally': return { eyes: 'happy', mouth: 'grin' };
     case 'stretch': return { eyes: 'shut', mouth: 'o' };
     case 'doze': return { eyes: 'shut', mouth: 'small' };
+    case 'fly': return { eyes: 'happy', mouth: 'grin' };
+    case 'glide': return { eyes: 'happy', mouth: 'o' };
     case 'eat': {                                                   // gulp, chew, burp (see EAT_MS)
       const t = now - modeSince;
       if (t < 1450) return { eyes: 'happy', mouth: 'chomp' };
@@ -122,6 +124,24 @@ function laptop(L, now) {
     const up = Math.max(0, Math.sin(now / 65 + i * 2.2)) * 2.5;
     g.beginPath(); g.roundRect(x - 3.5, 20 - up, 7, 5, 2); g.fillStyle = L.body; g.fill(); g.lineWidth = 1.6; g.strokeStyle = INK; g.stroke();
   });
+}
+
+// angel wings behind the body: three tiers of white feathers from a root at the top corner; side = -1 / 1.
+// rot turns the wing about its root, positive = folded down against the body
+function wing(side, rot, scale) {
+  g.save(); g.translate(side * 20, -9); g.scale(side * scale, scale); g.rotate(rot);
+  g.lineWidth = 1.8; g.strokeStyle = INK;
+  [[11, 2.5, 9.5, 4.5, 0.05, '#F1ECF4'], [14, -4, 12.5, 5.5, -0.25, '#FFFFFF'], [11, -11, 13, 6.5, -0.55, '#FFFFFF']].forEach(([x, y, rx, ry, a, fill]) => {
+    g.beginPath(); g.ellipse(x, y, rx, ry, a, 0, Math.PI * 2); g.fillStyle = fill; g.fill(); g.stroke();
+  });
+  g.restore();
+}
+function wingPose(m, now, moving) {
+  if (['sit', 'type', 'sleep', 'doze', 'eat', 'brew', 'ride', 'carry'].includes(m)) return [0.45, 0.85];   // folded
+  if (m === 'fly' || m === 'glide') return [-0.15 + Math.sin(now / 70) * 0.55, 1];
+  if (m === 'held' || m === 'fall' || m === 'slip') return [Math.sin(now / 45) * 0.7, 1];             // flailing
+  if (moving) return [-0.2 + Math.sin(now / 260) * 0.15, 1];
+  return [-0.25 + Math.sin(now / 900) * 0.06, 1];
 }
 
 function star(cx, cy, r) {
@@ -257,11 +277,14 @@ function draw() {
   }
   if (m === 'stretch') { const t = Math.sin(Math.min(1, (now - modeSince) / 2400) * Math.PI); g.translate(0, 19); g.scale(1 - t * 0.04, 1 + t * 0.1); g.translate(0, -19); }
   g.translate(0, sit);
+  if (m === 'glide') g.rotate(Math.sin(now / 300) * 0.08);                  // swaying as it floats down
+  if (pose.wings) { const [rot, sc] = wingPose(m, now, moving); wing(-1, rot, sc); wing(1, rot, sc); }
 
   // arms: nubs on both sides; waving / cheering / being held raise them
   const wave = m === 'wave' ? Math.sin(now / 110) * 0.7 - 0.9 : 0;
   const holding = m === 'haul' || m === 'fetch';
   const cheer = hopT >= 0 || m === 'meet' || m === 'ride' || holding ? -1.1
+    : m === 'fly' || m === 'glide' ? -0.5
     : flailing ? -1.3 + Math.sin(now / 60) * 0.35
     : m === 'stretch' ? -1.35
     : m === 'angry' ? 0.6 : 0;
@@ -388,6 +411,17 @@ function draw() {
       g.save(); g.translate(Math.cos(a) * 16, -22 + Math.sin(a) * 4);
       star(0, 0, 3.6); g.restore();
     }
+  }
+  // a hard landing with wings on: two feathers drift down past it
+  if (pose.feather >= 0 && pose.feather < 1800) {
+    const p = pose.feather / 1800;
+    [[-32, 0], [33, 1]].forEach(([x, i]) => {           // beside the body, clear of the face
+      g.save(); upright(x + Math.sin(p * 6 + i * 2) * 4, -30 + p * 50);
+      g.globalAlpha = Math.min(1, (1 - p) / 0.4); g.rotate(Math.sin(p * 5 + i) * 0.7);   // off the wing, fading at the end
+      g.beginPath(); g.ellipse(0, 0, 3.2, 7.5, 0, 0, Math.PI * 2); g.fillStyle = '#FFFFFF'; g.fill();
+      g.lineWidth = 1.3; g.strokeStyle = INK; g.stroke(); g.beginPath(); g.moveTo(0, -7.5); g.lineTo(0, 10); g.stroke();
+      g.restore();
+    });
   }
   // heart above the head when they meet
   if (heartT >= 0) {

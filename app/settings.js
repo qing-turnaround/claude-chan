@@ -45,7 +45,15 @@ function render(s) {
     return el;
   }));
 
-  $('clawdRow').style.display = s.skin === 'clawd' ? '' : 'none';
+  $('clawdRow').style.display = $('wingsRow').style.display = s.skin === 'clawd' ? '' : 'none';
+  $('wingsLabel').textContent = T.wings;
+  $('wingChips').replaceChildren(...['red', 'pink'].map((k) => {
+    const el = document.createElement('div');
+    el.className = 'chip' + (s.wings.includes(k) ? ' on' : '');
+    el.innerHTML = CLAWD_CHIP(k) + T.clawd[k];
+    el.onclick = () => api.set('wings', { kind: k, on: !s.wings.includes(k) });
+    return el;
+  }));
   $('chips').replaceChildren(...['red', 'pink'].map((k) => {
     const el = document.createElement('div');
     el.className = 'chip' + (s.clawd.includes(k) ? ' on' : '');
