@@ -432,6 +432,10 @@ http.createServer((req, res) => {
       if (!w) return res.end('no window');
       w.webContents.executeJavaScript(body).then(r => res.end(JSON.stringify(r ?? null)), e => res.end('ERR ' + e));
     });
+  } else if (process.env.PET_DEBUG && req.url === '/approvals-shot') {   // tests only: the approval cards' own pixels
+    const w = BrowserWindow.getAllWindows().find(x => x.webContents.getURL().includes('approvals.html'));
+    if (!w) { res.statusCode = 404; return res.end(); }
+    w.webContents.capturePage().then((img) => { res.setHeader('Content-Type', 'image/png'); res.end(img.toPNG()); });
   } else if (req.url === '/approvals-target') {   // debug: screen point (physical px) of the newest card's Allow button
     const w = BrowserWindow.getAllWindows().find(x => x.webContents.getURL().includes('approvals.html') && x.isVisible());
     if (!w) return res.end('null');

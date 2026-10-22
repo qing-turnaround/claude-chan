@@ -30,7 +30,11 @@
   .diff .del { color: #B3261E; background: #FBE7E4; border-radius: 3px; }
   .diff .add { color: #2E6B30; background: #E6F3E3; border-radius: 3px; }
   .main b { color: var(--mute); font-weight: 600; }
-  .q + .q { margin-top: 10px; padding-top: 10px; border-top: 1px dashed var(--line); }
+  .tabs { display: flex; flex-wrap: wrap; gap: 5px; margin: 2px 0 8px; }
+  .tab { font-size: 12px; padding: 2px 9px 2px 8px; border-radius: 999px; border: 1px solid var(--line); color: var(--mute); background: #fff; cursor: pointer; }
+  .tab.done::before { content: "✓ "; color: var(--accent); font-weight: 700; }
+  .tab.cur { border-color: var(--accent); background: #FDF1EB; color: var(--ink); font-weight: 600; }
+  .opts { max-height: 300px; overflow-y: auto; margin-right: -6px; padding-right: 6px; }   /* long lists scroll inside the card */
   .qhead { display: inline-block; font-size: 11px; color: var(--accent); border: 1px solid var(--accent); border-radius: 999px; padding: 0 8px; margin-bottom: 4px; }
   .qtext { font-weight: 600; margin-bottom: 6px; }
   .opt { border: 1.5px solid var(--line); border-radius: 10px; padding: 6px 10px; margin-top: 5px; cursor: pointer; background: #fff; }

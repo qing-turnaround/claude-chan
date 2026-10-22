@@ -41,30 +41,48 @@ function fieldsBody(it) {
   return [d];
 }
 
-// AskUserQuestion: the question and its options, answered right here
+// AskUserQuestion: answered right here, one question at a time. Several questions get a row of tabs on top (the
+// terminal's own stepper): answered ones are ticked, a single-choice pick moves on to the next, and Submit comes once
+// all are answered. A long list of options scrolls inside the card, so the card never outgrows the screen
+const fit = () => setTimeout(() => window.approvals.height(document.body.scrollHeight), 0);
 function questionBody(it, T) {
-  const sel = picks.get(it.id) || { typed: {} };
+  const sel = picks.get(it.id) || { typed: {}, cur: 0 };
   picks.set(it.id, sel);
-  const single = it.questions.length === 1 && !it.questions[0].multi;
-  const out = [];
+  const qs = it.questions, many = qs.length > 1, single = !many && !qs[0].multi;
   // a typed answer ("Other") replaces the pick on a single-choice question, and joins the picks on a multi-choice one
   const answer = (q, i) => {
     const typed = (sel.typed[i] || '').trim();
     if (!q.multi && typed) return typed;
     return [...(sel[i] || []), ...(typed ? [typed] : [])].join(', ');
   };
-  const ready = () => it.questions.every((q, i) => answer(q, i));
+  const ready = () => qs.every((q, i) => answer(q, i));
   const send = () => {
     if (!ready()) return;
     const answers = {};
-    it.questions.forEach((q, i) => { answers[i] = answer(q, i); });
+    qs.forEach((q, i) => { answers[i] = answer(q, i); });
     window.approvals.decide(it.id, 'answer', answers);
   };
-  const submit = button('allow', T.submit, send);
-  it.questions.forEach((q, i) => {
+  const wrap = el('div');
+  const go = (i) => { sel.cur = Math.max(0, Math.min(qs.length - 1, i)); draw(); fit(); };
+  // after a pick: the next unanswered question, or stay on the last one so Submit is right there
+  const next = () => { const k = qs.findIndex((q, i) => i > sel.cur && !answer(q, i)); go(k >= 0 ? k : Math.min(sel.cur + 1, qs.length - 1)); };
+
+  function draw() {
+    const i = sel.cur, q = qs[i];
+    const parts = [];
+    if (many) {
+      const tabs = el('div', 'tabs');
+      qs.forEach((qq, k) => {
+        const t = el('div', 'tab' + (k === i ? ' cur' : '') + (answer(qq, k) ? ' done' : ''), qq.header || String(k + 1));
+        t.onclick = () => go(k);
+        tabs.append(t);
+      });
+      parts.push(tabs);
+    }
     const box = el('div', 'q');
-    if (q.header) box.append(el('div', 'qhead', q.header));
+    if (q.header && !many) box.append(el('div', 'qhead', q.header));
     box.append(el('div', 'qtext', q.question));
+    const opts = el('div', 'opts');
     q.options.forEach((o) => {
       const opt = el('div', 'opt' + (sel[i] && sel[i].has(o.label) ? ' on' : ''));
       opt.append(el('div', 'olabel', o.label));
@@ -73,30 +91,41 @@ function questionBody(it, T) {
         if (single) return window.approvals.decide(it.id, 'answer', { 0: o.label });   // one question, one pick: done
         const s = sel[i] || (sel[i] = new Set());
         if (q.multi) s.has(o.label) ? s.delete(o.label) : s.add(o.label);
-        else { s.clear(); s.add(o.label); }
-        if (!q.multi) { sel.typed[i] = ''; other.value = ''; }
-        box.querySelectorAll('.opt').forEach((x, k) => x.classList.toggle('on', s.has(q.options[k].label)));
-        submit.disabled = !ready();
+        else { s.clear(); s.add(o.label); sel.typed[i] = ''; }
+        if (!q.multi && many) return next();
+        draw(); fit();
       };
-      box.append(opt);
+      opts.append(opt);
     });
     // the terminal's own "Type something" choice: an answer of your own
     const other = el('input', 'other');
     other.placeholder = T.other; other.value = sel.typed[i] || '';
     other.oninput = () => {
       sel.typed[i] = other.value;
-      if (!q.multi && other.value.trim() && sel[i]) { sel[i].clear(); box.querySelectorAll('.opt').forEach((x) => x.classList.remove('on')); }
+      if (!q.multi && other.value.trim() && sel[i] && sel[i].size) { sel[i].clear(); opts.querySelectorAll('.opt').forEach((x) => x.classList.remove('on')); }
       submit.disabled = !ready();
+      wrap.querySelectorAll('.tab')[i]?.classList.toggle('done', !!answer(q, i));
     };
-    other.onkeydown = (e) => { if (e.key === 'Enter' && !e.isComposing) send(); };   // not the Enter that ends IME input
-    box.append(other);
-    out.push(box);
-  });
-  const btns = el('div', 'btns');
-  submit.disabled = !ready(); btns.append(submit);
-  btns.append(button('deny', T.toTerminal, () => window.approvals.decide(it.id, 'terminal')));
-  out.push(btns);
-  return out;
+    other.onkeydown = (e) => {
+      if (e.key !== 'Enter' || e.isComposing) return;            // not the Enter that ends IME input
+      if (ready()) send(); else if (many && answer(q, i)) next();
+    };
+    opts.append(other);
+    box.append(opts);
+    parts.push(box);
+
+    const btns = el('div', 'btns');
+    const submit = button('allow', T.submit, send);
+    submit.disabled = !ready();
+    if (many && i > 0) btns.append(button('', T.prev, () => go(i - 1)));
+    if (many && i < qs.length - 1) btns.append(button(ready() ? '' : 'allow', T.next, () => go(i + 1)));
+    if (!many || ready() || i === qs.length - 1) btns.append(submit);
+    btns.append(button('deny', T.toTerminal, () => window.approvals.decide(it.id, 'terminal')));
+    parts.push(btns);
+    wrap.replaceChildren(...parts);
+  }
+  draw();
+  return [wrap];
 }
 
 window.approvals.onView(({ T, items }) => {

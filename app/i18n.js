@@ -11,7 +11,7 @@ const STR = {
         allow: '允许', deny: '拒绝', always: '始终允许', upCheck: '检查更新', upChecking: '正在检查…', upLatest: '已是最新版本', upError: '没连上，稍后会自动再试', upDev: '开发版不检查更新',
         upDownloading: '正在下载 {v}（{p}%）', upInstalling: '正在安装 {v}，马上重启…', upAvailable: '有新版本 {v}', upNow: '更新', upDownload: '去下载',
         upAvailableTitle: 'Claude-chan {v} 出新版了', upAvailableBody: '点这里查看',
-        submit: '提交', other: '其他：自己写…', toTerminal: '去终端回答', question: '有问题问你', },
+        submit: '提交', prev: '上一题', next: '下一题', other: '其他：自己写…', toTerminal: '去终端回答', question: '有问题问你', },
   tw: { actions: '動作', idle: '待機', think: '思考', eat: '吃飯糰', stretch: '伸懶腰', yawn: '打哈欠', wave: '打招呼',
         sleep: '睡覺', done: '歡呼', walk: '走走', status: '工作狀態', work: '工作中', wait: '等你確認', finish: '完成',
         link: '連動 Claude Code', size: '大小', roam: '自由走動', login: '開機自動啟動', quit: '結束', cantEdit: '無法寫入',
@@ -23,7 +23,7 @@ const STR = {
         allow: '允許', deny: '拒絕', always: '一律允許', upCheck: '檢查更新', upChecking: '正在檢查…', upLatest: '已是最新版本', upError: '沒連上，稍後會自動再試', upDev: '開發版不檢查更新',
         upDownloading: '正在下載 {v}（{p}%）', upInstalling: '正在安裝 {v}，馬上重新啟動…', upAvailable: '有新版本 {v}', upNow: '更新', upDownload: '去下載',
         upAvailableTitle: 'Claude-chan {v} 出新版了', upAvailableBody: '點這裡查看',
-        submit: '送出', other: '其他：自己寫…', toTerminal: '到終端機回答', question: '有問題問你', },
+        submit: '送出', prev: '上一題', next: '下一題', other: '其他：自己寫…', toTerminal: '到終端機回答', question: '有問題問你', },
   ja: { actions: 'アクション', idle: '待機', think: '考えごと', eat: 'おにぎり', stretch: 'のび', yawn: 'あくび', wave: 'あいさつ',
         sleep: 'ねる', done: 'バンザイ', walk: 'おさんぽ', status: '作業状態', work: '作業中', wait: '許可待ち', finish: '完了',
         link: 'Claude Code と連動', size: 'サイズ', roam: '自由に歩く', login: 'スタートアップ起動', quit: '終了', cantEdit: '書き込めません',
@@ -35,7 +35,7 @@ const STR = {
         allow: '許可', deny: '拒否', always: '常に許可', upCheck: 'アップデートを確認', upChecking: '確認中…', upLatest: '最新バージョンです', upError: '接続できませんでした。あとで自動で再試行します', upDev: '開発版は確認しません',
         upDownloading: '{v} をダウンロード中（{p}%）', upInstalling: '{v} をインストール中、まもなく再起動します…', upAvailable: '新しいバージョン {v}', upNow: '更新', upDownload: 'ダウンロード',
         upAvailableTitle: 'Claude-chan {v} が出ました', upAvailableBody: 'クリックで確認',
-        submit: '送信', other: 'その他：自由に入力…', toTerminal: 'ターミナルで答える', question: '質問があります', },
+        submit: '送信', prev: '前へ', next: '次へ', other: 'その他：自由に入力…', toTerminal: 'ターミナルで答える', question: '質問があります', },
   en: { actions: 'Actions', idle: 'Idle', think: 'Think', eat: 'Snack', stretch: 'Stretch', yawn: 'Yawn', wave: 'Wave',
         sleep: 'Sleep', done: 'Cheer', walk: 'Walk', status: 'Work status', work: 'Working', wait: 'Waiting for you', finish: 'Done',
         link: 'Link Claude Code', size: 'Size', roam: 'Free roaming', login: 'Launch at startup', quit: 'Quit', cantEdit: 'Cannot write',
@@ -47,7 +47,7 @@ const STR = {
         allow: 'Allow', deny: 'Deny', always: 'Always allow', upCheck: 'Check for updates', upChecking: 'Checking…', upLatest: 'You have the latest version', upError: "Couldn't connect; will try again later", upDev: 'Not checked in a dev build',
         upDownloading: 'Downloading {v} ({p}%)', upInstalling: 'Installing {v}, restarting in a moment…', upAvailable: 'Version {v} is out', upNow: 'Update', upDownload: 'Download',
         upAvailableTitle: 'Claude-chan {v} is out', upAvailableBody: 'Click to take a look',
-        submit: 'Submit', other: 'Other: type your own…', toTerminal: 'Answer in terminal', question: 'A question for you', },
+        submit: 'Submit', prev: 'Back', next: 'Next', other: 'Other: type your own…', toTerminal: 'Answer in terminal', question: 'A question for you', },
 };
 
 // Each language is shown in its own script in the language menu

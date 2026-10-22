@@ -14,3 +14,4 @@ app/smoke/
 scripts/record_v2.py
 scripts/record_clawd.py
 scripts/record_clawd2.py
+scripts/record_v3.py
