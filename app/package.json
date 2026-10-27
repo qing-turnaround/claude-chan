@@ -40,7 +40,8 @@
       "approvals-preload.js",
       "critter-renderer.js",
       "critter-preload.js",
-      "updater.js"
+      "updater.js",
+      "holidays.js"
     ],
     "directories": {
       "output": "dist",

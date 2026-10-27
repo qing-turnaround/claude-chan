@@ -62,4 +62,8 @@ function act() {
   updater.downloadUpdate().catch(() => set({ status: 'error' }));
 }
 
-module.exports = { init, check, act, state: () => ({ ...state, enabled: !!updater, canInstall }) };
+// tests and screen recordings only (PET_DEBUG): show a given state, to film the Settings row without installing anything
+let staged = false;
+function debugShow(s) { staged = true; set(s); }
+
+module.exports = { init, check, act, debugShow, state: () => ({ ...state, enabled: !!updater || staged, canInstall }) };

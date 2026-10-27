@@ -82,11 +82,74 @@ const ORANGE = '#D97757', CREAM = '#FFF4E6';
 
 // a code block: an orange tile with a bracket on it (carried on the head, and piled up)
 function block(x, y, k, alpha = 1) {
+  if (pose.holiday) return treat(x, y, k, alpha);
   g.save(); g.globalAlpha = alpha;
   g.beginPath(); g.roundRect(x - 9, y - 7, 18, 14, 3); g.fillStyle = ORANGE; g.fill();
   g.lineWidth = 1.8; g.strokeStyle = INK; g.stroke();
   g.fillStyle = CREAM; g.font = '700 8px Consolas, monospace'; g.textAlign = 'center'; g.textBaseline = 'middle';
   g.fillText(['{ }', '</>', '( )', '[ ]'][k % 4], x, y + 0.5);
+  g.restore();
+}
+
+// the holiday version of a code block: a wrapped sweet, a present, a red envelope
+function treat(x, y, k, alpha) {
+  g.save(); g.globalAlpha = alpha; g.translate(x, y);
+  g.lineWidth = 1.8; g.strokeStyle = INK; g.lineJoin = 'round';
+  if (pose.holiday === 'halloween') {
+    const c = ['#F28C28', '#8E5BB5', '#7BBF4E', '#E2453C'][k % 4];
+    [-1, 1].forEach((s) => { g.beginPath(); g.moveTo(s * 6, 0); g.lineTo(s * 11, -4); g.lineTo(s * 11, 4); g.closePath(); g.fillStyle = c; g.fill(); g.stroke(); });
+    g.beginPath(); g.ellipse(0, 0, 7, 5.5, 0, 0, Math.PI * 2); g.fillStyle = c; g.fill(); g.stroke();
+    g.strokeStyle = '#FFF4E6'; g.lineWidth = 1.4; g.beginPath(); g.moveTo(-3, -3); g.lineTo(3, 3); g.stroke();
+  } else if (pose.holiday === 'xmas') {
+    const c = ['#D94A3D', '#3E8E5A', '#3D7DD9', '#E8A33A'][k % 4];
+    g.beginPath(); g.roundRect(-8, -6, 16, 13, 2); g.fillStyle = c; g.fill(); g.stroke();
+    g.fillStyle = '#FFF4E6'; g.fillRect(-1.5, -6, 3, 13); g.fillRect(-8, -1, 16, 3);
+    g.strokeStyle = '#FFF4E6'; g.lineWidth = 1.6;
+    [-1, 1].forEach((s) => { g.beginPath(); g.ellipse(s * 3, -8, 3, 2, s * 0.5, 0, Math.PI * 2); g.stroke(); });
+  } else {
+    g.beginPath(); g.roundRect(-7, -9, 14, 18, 2); g.fillStyle = '#D9302B'; g.fill(); g.stroke();
+    g.beginPath(); g.moveTo(-7, -5); g.quadraticCurveTo(0, 0, 7, -5); g.strokeStyle = '#8F1E1A'; g.lineWidth = 1.2; g.stroke();
+    g.beginPath(); g.arc(0, 1, 3.4, 0, Math.PI * 2); g.fillStyle = '#F6C445'; g.fill();
+  }
+  g.restore();
+}
+
+// holiday hats, drawn on the top of the body (y = -14): red and pink each get their own
+function hat(kind, now) {
+  g.save(); g.lineWidth = 2; g.strokeStyle = INK; g.lineJoin = 'round';
+  const h = pose.holiday;
+  if (h === 'halloween' && kind === 'red') {               // witch hat, tip bent back
+    g.beginPath(); g.ellipse(2, -15, 19, 4, -0.05, 0, Math.PI * 2); g.fillStyle = '#3B2A4A'; g.fill(); g.stroke();
+    g.beginPath(); g.moveTo(-9, -16); g.quadraticCurveTo(-4, -34, 4, -40); g.quadraticCurveTo(14, -42, 17, -36);
+    g.quadraticCurveTo(10, -36, 10, -30); g.lineTo(13, -16); g.closePath(); g.fillStyle = '#3B2A4A'; g.fill(); g.stroke();
+    g.beginPath(); g.moveTo(-8, -19); g.lineTo(12.5, -19.5); g.lineTo(12, -22.5); g.lineTo(-7.2, -22.5); g.closePath(); g.fillStyle = ORANGE; g.fill(); g.stroke();
+  } else if (h === 'halloween') {                           // a little jack-o'-lantern on the head
+    g.translate(10, -22); g.scale(1.35, 1.35);
+    g.beginPath(); g.moveTo(0, -6); g.quadraticCurveTo(1, -10, 3, -11); g.lineWidth = 2.2; g.strokeStyle = '#4E6B2E'; g.stroke();
+    g.lineWidth = 1.8; g.strokeStyle = INK;
+    [[-4.5, 4.5], [4.5, 4.5], [0, 5.5]].forEach(([x, r]) => { g.beginPath(); g.ellipse(x, 0, r, 6.5, 0, 0, Math.PI * 2); g.fillStyle = '#F28C28'; g.fill(); g.stroke(); });
+    const glow = 0.75 + Math.sin(now / 180) * 0.25;
+    g.fillStyle = `rgba(122,46,42,${glow})`;
+    g.beginPath(); g.moveTo(-4.5, -1.5); g.lineTo(-2, -1.5); g.lineTo(-3.2, -3.5); g.fill();
+    g.beginPath(); g.moveTo(2, -1.5); g.lineTo(4.5, -1.5); g.lineTo(3.2, -3.5); g.fill();
+    g.beginPath(); g.moveTo(-4, 1.5); g.lineTo(4, 1.5); g.lineTo(2, 3.5); g.lineTo(0, 2.5); g.lineTo(-2, 3.5); g.closePath(); g.fill();
+  } else if (h === 'xmas') {                                // Santa hat, flopping over to one side
+    const flop = Math.sin(now / 700) * 1.5;
+    g.beginPath(); g.moveTo(-17, -16); g.quadraticCurveTo(-8, -36, 6, -34); g.quadraticCurveTo(18 + flop, -32, 20 + flop, -22);
+    g.lineTo(13, -16); g.closePath(); g.fillStyle = '#D94A3D'; g.fill(); g.stroke();
+    g.beginPath(); g.roundRect(-20, -19, 36, 7, 3.5); g.fillStyle = '#FFFAF2'; g.fill(); g.stroke();
+    g.beginPath(); g.arc(21 + flop, -20, 4.2, 0, Math.PI * 2); g.fill(); g.stroke();
+  } else if (h === 'cny' && kind === 'red') {               // a skullcap with a red knot on top
+    g.beginPath(); g.moveTo(-15, -14); g.quadraticCurveTo(-14, -28, 0, -28); g.quadraticCurveTo(14, -28, 15, -14); g.closePath();
+    g.fillStyle = '#2E2A2A'; g.fill(); g.stroke();
+    g.strokeStyle = '#C9A13B'; g.lineWidth = 1.2; g.beginPath(); g.moveTo(0, -28); g.lineTo(0, -15); g.moveTo(-8, -26); g.quadraticCurveTo(-9, -20, -9.5, -15); g.moveTo(8, -26); g.quadraticCurveTo(9, -20, 9.5, -15); g.stroke();
+    g.strokeStyle = INK; g.lineWidth = 1.8; g.beginPath(); g.arc(0, -30.5, 3.4, 0, Math.PI * 2); g.fillStyle = '#D9302B'; g.fill(); g.stroke();
+  } else if (h === 'cny') {                                 // a big red bow with a gold centre
+    g.translate(9, -19);
+    [-1, 1].forEach((s) => { g.beginPath(); g.moveTo(0, 0); g.quadraticCurveTo(s * 9, -9, s * 10, 0); g.quadraticCurveTo(s * 9, 7, 0, 0); g.fillStyle = '#D9302B'; g.fill(); g.stroke(); });
+    [-1, 1].forEach((s) => { g.beginPath(); g.moveTo(0, 1); g.lineTo(s * 5, 9); g.lineTo(s * 2, 9); g.closePath(); g.fillStyle = '#B5231F'; g.fill(); g.stroke(); });
+    g.beginPath(); g.arc(0, 0, 2.6, 0, Math.PI * 2); g.fillStyle = '#F6C445'; g.fill(); g.stroke();
+  }
   g.restore();
 }
 
@@ -396,6 +459,7 @@ function draw() {
     g.restore();
   }
 
+  if (pose.holiday && !(gear === 'rotor' && gearOut > 0.3)) hat(KIND, now);   // the propeller beanie replaces the hat while it flies
   if (gear === 'rotor') rotor(m, now, gearOut);                         // over the flower
 
   // carried on the head (drawn over the flower)

@@ -3,6 +3,7 @@ const claude = require('./claude-hooks');
 const i18n = require('./i18n');
 const critters = require('./critters');
 const approvals = require('./approvals');
+const holidays = require('./holidays');
 const updater = require('./updater');
 const http = require('http');
 const path = require('path');
@@ -25,7 +26,8 @@ const BASE_W = 300, BASE_H = 320;
 const SKINS = ['hoodie', 'scholar', 'maid', 'spirit'];
 
 const settingsFile = path.join(app.getPath('userData'), 'settings.json');
-let settings = { flight: 'off', patApprove: true, size: 1, roam: true, x: null, y: null, skin: 'hoodie', lang: 'auto', clawd: ['red', 'pink'] };
+// a fresh install starts with the two Clawds; an existing settings file keeps its outfit
+let settings = { holiday: true, flight: 'off', patApprove: true, size: 1, roam: true, x: null, y: null, skin: 'clawd', lang: 'auto', clawd: ['red', 'pink'] };
 try { Object.assign(settings, JSON.parse(fs.readFileSync(settingsFile, 'utf8'))); } catch {}
 // older versions stored S / M / L
 if (typeof settings.size !== 'number') settings.size = { S: 0.75, M: 1, L: 1.35 }[settings.size] || 1;
@@ -63,8 +65,20 @@ function createWindow() {
   if (MAC) win.setVisibleOnAllWorkspaces(true, { visibleOnFullScreen: true });   // stays when you switch Spaces
   if (!LINUX) win.setIgnoreMouseEvents(true, { forward: true });
   win.loadFile('index.html');
-  win.webContents.on('did-finish-load', () => win.webContents.send('scale', scale()));
+  win.webContents.on('did-finish-load', () => { win.webContents.send('scale', scale()); win.webContents.send('holiday', holidayNow); });
 }
+
+// Holiday dress-up (holidays.js): checked every 10 minutes, so it comes and goes on its own. PET_HOLIDAY forces one
+// (halloween / xmas / cny / none) for tests
+let holidayNow = null, holidayForce = process.env.PET_HOLIDAY || null;
+function checkHoliday() {
+  const h = holidayForce ? (holidays.LIST.includes(holidayForce) ? holidayForce : null) : settings.holiday !== false ? holidays.current() : null;
+  if (h === holidayNow) return;
+  holidayNow = h;
+  if (win && !win.isDestroyed()) win.webContents.send('holiday', h);
+  critters.setHoliday(h);
+}
+setInterval(checkHoliday, 10 * 60e3);
 
 // ---------- Mouse click-through: only take over when the click lands on a character pixel ----------
 // Linux: the window only exists (for drawing and for the mouse) inside these rectangles
@@ -210,6 +224,7 @@ function apply(key, v) {
     case 'unhook': removeHooks(); break;
     case 'login': app.setLoginItemSettings({ ...loginOpts(), openAtLogin: !!v }); break;
     case 'patApprove': settings.patApprove = !!v; break;
+    case 'holiday': settings.holiday = !!v; checkHoliday(); break;
     case 'lang': settings.lang = i18n.LANGS.includes(v) ? v : 'auto'; break;
     case 'update': updater.act(); return;               // check / restart into the new version / open the download page
   }
@@ -224,7 +239,7 @@ function settingsState() {
     outfits: SKINS.filter(k => fs.existsSync(path.join(__dirname, 'assets', 'skins', k, 'idle.webp'))).concat('clawd'),
     skin: settings.skin, clawd: clawdKinds(), flight: settings.flight, size: scale(), sizeMin: SIZE_MIN, sizeMax: SIZE_MAX,
     roam: settings.roam, link: linked, hooks: claude.isInstalled(), login: app.getLoginItemSettings(loginOpts()).openAtLogin,
-    lang: i18n.LANGS.includes(settings.lang) ? settings.lang : 'auto', version: app.getVersion(), canLogin: !LINUX, patApprove: settings.patApprove !== false,
+    lang: i18n.LANGS.includes(settings.lang) ? settings.lang : 'auto', version: app.getVersion(), canLogin: !LINUX, patApprove: settings.patApprove !== false, holiday: settings.holiday !== false,
     update: updater.state(),
   };
 }
@@ -411,6 +426,14 @@ http.createServer((req, res) => {
     let body = '';
     req.on('data', c => body += c);
     req.on('end', () => { try { const { key, value } = JSON.parse(body); apply(key, value); } catch {} res.end('ok'); });
+  } else if (process.env.PET_DEBUG && req.method === 'POST' && req.url === '/update-state') {   // tests only: {status, version, percent}
+    let body = '';
+    req.on('data', c => body += c);
+    req.on('end', () => { try { updater.debugShow(JSON.parse(body)); } catch {} res.end('ok'); });
+  } else if (process.env.PET_DEBUG && req.method === 'POST' && req.url === '/holiday') {   // tests only: halloween / xmas / cny / none / '' (by date)
+    let body = '';
+    req.on('data', c => body += c);
+    req.on('end', () => { holidayForce = body.trim() || null; checkHoliday(); res.end(String(holidayNow)); });
   } else if (process.env.PET_DEBUG && req.method === 'POST' && req.url === '/update') {   // tests only: same as the Settings button
     updater.act(); res.end(JSON.stringify(updater.state()));
   } else if (req.url === '/settings-state') {   // debug: what the Settings window is given (or why it fails)
@@ -469,7 +492,7 @@ if (!app.requestSingleInstanceLock()) app.quit();
 app.whenReady().then(() => {
   if (process.platform === 'win32') app.setAppUserModelId('com.qing.claudechan');   // so update notifications show
   createWindow();
-  critters.setScale(scale()); critters.setRoam(settings.roam); critters.setFlight(settings.flight);
+  critters.setScale(scale()); critters.setRoam(settings.roam); critters.setFlight(settings.flight); checkHoliday();
   const text = () => i18n(settings.lang, app.getLocale());
   approvals.init({ pet: () => (win && !win.isDestroyed() && win.isVisible() ? win.getBounds() : null), text, decided: (id) => pushStatus(claude.resolved(id)) });
   // hooks put in by an older version (no approval card, no process id): bring them up to date

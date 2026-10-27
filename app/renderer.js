@@ -410,3 +410,107 @@ if (window.pet.platform === 'linux') {
     if (key !== last) { last = key; window.pet.shape([{ x: x0, y: y0, width: x1 - x0, height: y1 - y0 }]); }
   }, 100);
 }
+
+// ---------- Holiday decorations around her (holidays.js in the main process says which, if any) ----------
+// Drawn on a canvas in front of her that never takes the mouse: Halloween bats and a jack-o-lantern, Christmas snow
+// and a little tree, Lunar New Year lanterns and the odd firework. Positions follow her drawn size, so they scale.
+const deco = $('deco'), dg = deco.getContext('2d');
+let holiday = null, decoTimer = null;
+const flakes = Array.from({ length: 26 }, (_, i) => ({ x: Math.random(), y: Math.random(), r: 1.2 + Math.random() * 1.8, v: 0.25 + Math.random() * 0.35, ph: i }));
+let fireworks = [], nextFirework = 0;
+
+function bat(x, y, s, flap) {
+  dg.save(); dg.translate(x, y); dg.scale(s * 1.25, s * 1.25);
+  const w = Math.sin(flap) * 6;
+  dg.beginPath();
+  dg.moveTo(0, 0);
+  dg.quadraticCurveTo(-6, -9 - w, -14, -6 - w); dg.quadraticCurveTo(-11, 0, -12, 3); dg.quadraticCurveTo(-8, 1, -6, 4); dg.quadraticCurveTo(-3, 1, 0, 3);
+  dg.quadraticCurveTo(3, 1, 6, 4); dg.quadraticCurveTo(8, 1, 12, 3); dg.quadraticCurveTo(11, 0, 14, -6 - w); dg.quadraticCurveTo(6, -9 - w, 0, 0);
+  dg.fillStyle = '#3B2A4A'; dg.fill();
+  dg.beginPath(); dg.arc(0, 0, 3.4, 0, Math.PI * 2); dg.fill();
+  dg.fillStyle = '#F6C445'; dg.fillRect(-1.6, -1, 1, 1); dg.fillRect(0.6, -1, 1, 1);
+  dg.restore();
+}
+function lantern(x, y, s, t) {
+  dg.save(); dg.translate(x, y); dg.rotate(Math.sin(t) * 0.08); dg.scale(s, s);
+  dg.strokeStyle = '#2B2220'; dg.lineWidth = 1.4;
+  dg.beginPath(); dg.moveTo(0, -30); dg.lineTo(0, -12); dg.stroke();
+  dg.fillStyle = '#C9A13B'; dg.fillRect(-5, -13, 10, 3); dg.fillRect(-5, 11, 10, 3);
+  dg.beginPath(); dg.ellipse(0, 0, 13, 11, 0, 0, Math.PI * 2); dg.fillStyle = '#D9302B'; dg.fill(); dg.stroke();
+  dg.strokeStyle = 'rgba(143,30,26,.7)'; dg.beginPath(); dg.ellipse(0, 0, 5, 11, 0, 0, Math.PI * 2); dg.stroke();
+  dg.strokeStyle = '#C9A13B'; dg.lineWidth = 1.2;
+  for (let i = -2; i <= 2; i++) { dg.beginPath(); dg.moveTo(i * 1.6, 14); dg.lineTo(i * 1.6, 22); dg.stroke(); }
+  dg.restore();
+}
+function pumpkin(x, y, s, now) {
+  dg.save(); dg.translate(x, y); dg.scale(s, s);
+  dg.beginPath(); dg.moveTo(0, -10); dg.quadraticCurveTo(1, -15, 4, -16); dg.strokeStyle = '#4E6B2E'; dg.lineWidth = 2.4; dg.stroke();
+  dg.strokeStyle = '#2B2220'; dg.lineWidth = 1.8;
+  [[-7, 7], [7, 7], [0, 8.5]].forEach(([px, r]) => { dg.beginPath(); dg.ellipse(px, 0, r, 10, 0, 0, Math.PI * 2); dg.fillStyle = '#F28C28'; dg.fill(); dg.stroke(); });
+  dg.fillStyle = `rgba(255,214,90,${0.75 + Math.sin(now / 170) * 0.25})`;
+  dg.beginPath(); dg.moveTo(-7, -2); dg.lineTo(-3, -2); dg.lineTo(-5, -6); dg.fill();
+  dg.beginPath(); dg.moveTo(3, -2); dg.lineTo(7, -2); dg.lineTo(5, -6); dg.fill();
+  dg.beginPath(); dg.moveTo(-6, 3); dg.lineTo(6, 3); dg.lineTo(3, 6); dg.lineTo(0, 4.5); dg.lineTo(-3, 6); dg.closePath(); dg.fill();
+  dg.restore();
+}
+function tree(x, y, s, now) {
+  dg.save(); dg.translate(x, y); dg.scale(s, s);
+  dg.strokeStyle = '#2B2220'; dg.lineWidth = 1.8; dg.lineJoin = 'round';
+  dg.fillStyle = '#7A4A2E'; dg.fillRect(-3, -6, 6, 6); dg.strokeRect(-3, -6, 6, 6);
+  [[0, -6, 16], [0, -16, 13], [0, -25, 9]].forEach(([tx, ty, w]) => {
+    dg.beginPath(); dg.moveTo(tx - w, ty); dg.lineTo(tx, ty - 14); dg.lineTo(tx + w, ty); dg.closePath(); dg.fillStyle = '#3E8E5A'; dg.fill(); dg.stroke();
+  });
+  [[-7, -10, '#D94A3D'], [6, -14, '#F6C445'], [-3, -21, '#3D7DD9'], [4, -26, '#D94A3D']].forEach(([bx, by, c], i) => {
+    dg.beginPath(); dg.arc(bx, by, 1.9, 0, Math.PI * 2); dg.fillStyle = c; dg.globalAlpha = 0.6 + 0.4 * Math.abs(Math.sin(now / 400 + i)); dg.fill(); dg.globalAlpha = 1;
+  });
+  dg.beginPath();
+  for (let i = 0; i < 10; i++) { const a = -Math.PI / 2 + i * Math.PI / 5, r = i % 2 ? 2 : 4.5; dg.lineTo(Math.cos(a) * r, -41 + Math.sin(a) * r); }
+  dg.closePath(); dg.fillStyle = '#F6C445'; dg.fill(); dg.lineWidth = 1.2; dg.stroke();
+  dg.restore();
+}
+
+function drawDeco() {
+  const W = deco.clientWidth, H = deco.clientHeight, dpr = devicePixelRatio || 1;
+  if (deco.width !== Math.round(W * dpr)) { deco.width = Math.round(W * dpr); deco.height = Math.round(H * dpr); }
+  dg.setTransform(dpr, 0, 0, dpr, 0, 0); dg.clearRect(0, 0, W, H);
+  if (!holiday) return;
+  const r = img.getBoundingClientRect(), now = performance.now(), s = Math.max(0.9, r.height / 140);
+  const cx = r.left + r.width / 2, top = r.top, bottom = H;
+  if (holiday === 'halloween') {
+    // three bats on loops round her head, at different speeds
+    [[0, 1.0, 1], [2.1, 0.8, 0.8], [4.2, 1.25, 0.65]].forEach(([ph, sp, sz]) => {
+      const t = now / 1000 * sp + ph;
+      bat(cx + Math.cos(t) * (r.width * 0.62 + 14 * sz), top + 22 * s + Math.sin(t * 2) * 14 * s, s * sz, now / 70 + ph * 3);
+    });
+    pumpkin(cx - r.width * 0.7, bottom - 13 * s, s * 1.1, now);
+  } else if (holiday === 'xmas') {
+    dg.fillStyle = 'rgba(255,255,255,.95)'; dg.strokeStyle = 'rgba(150,170,200,.6)'; dg.lineWidth = 0.8;
+    for (const f of flakes) {
+      f.y += f.v / H * 2.2; if (f.y > 1) { f.y = 0; f.x = Math.random(); }
+      const x = f.x * W + Math.sin(now / 900 + f.ph) * 8, y = f.y * H;
+      dg.beginPath(); dg.arc(x, y, f.r * s, 0, Math.PI * 2); dg.fill(); dg.stroke();
+    }
+    tree(cx + r.width * 0.72, bottom, s * 1.1, now);
+  } else if (holiday === 'cny') {
+    lantern(cx - r.width * 0.66, top + 24 * s, s * 0.95, now / 900);
+    lantern(cx + r.width * 0.66, top + 16 * s, s * 0.85, now / 900 + 1.7);
+    if (now > nextFirework) {                     // a small burst of sparks now and then, above one side
+      nextFirework = now + 5000 + Math.random() * 4000;
+      const x0 = cx + (Math.random() < 0.5 ? -1 : 1) * r.width * (0.4 + Math.random() * 0.3), y0 = top - 6 * s + Math.random() * 20 * s;
+      fireworks.push({ x: x0, y: y0, t0: now, col: ['#F6C445', '#D9302B', '#F28C28'][Math.floor(Math.random() * 3)] });
+    }
+    fireworks = fireworks.filter((f) => now - f.t0 < 1100);
+    for (const f of fireworks) {
+      const p = (now - f.t0) / 1100;
+      dg.fillStyle = f.col; dg.globalAlpha = 1 - p;
+      for (let i = 0; i < 12; i++) { const a = i * Math.PI / 6, d = p * 28 * s; dg.beginPath(); dg.arc(f.x + Math.cos(a) * d, f.y + Math.sin(a) * d + p * p * 10, 2 * s * (1 - p * 0.5), 0, Math.PI * 2); dg.fill(); }
+      dg.globalAlpha = 1;
+    }
+  }
+}
+window.pet.on('holiday', (h) => {
+  holiday = h;
+  clearInterval(decoTimer); decoTimer = null;
+  if (h) decoTimer = setInterval(drawDeco, 33);
+  drawDeco();
+});

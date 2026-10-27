@@ -69,6 +69,7 @@ Five outfits. Right-click → **Outfit** to switch, or pick one in **Settings…
 - Now and then they chase each other, walk off hand in hand, or one rides on the other's head
 - When nothing is going on they wander a bit and rest a lot, and fall asleep when you step away
 - They can fly (Settings → **Flight**: pixel wings, jets or a propeller beanie): now and then one flies over to another spot on the edge; toss one gently and it floats down onto its feet, throw it hard and it still lands dizzy in a puff of smoke
+- Holiday outfits: for Halloween, Christmas and Lunar New Year they dress up on their own (hats, a candy pile, bats, snow or lanterns around Claude-chan); turn it off in Settings → Look
 
 ## Also
 

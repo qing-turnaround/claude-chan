@@ -437,7 +437,7 @@ function tick() {
       hand: st.mode === 'hold' ? (k === holdLead ? 'back' : 'front') : null,
       cursor: { x: cur.x - Math.round(p.x - W / 2), y: cur.y - Math.round(p.y - W / 2) },   // in window px, for hit testing
       moving: roam && SPEEDS[st.mode] !== undefined && !st.rideOn, scale: SC,
-      flight: flies() ? flight : null, puff: st.puffAt ? now - st.puffAt : -1,
+      holiday, flight: flies() ? flight : null, puff: st.puffAt ? now - st.puffAt : -1,
     });
   }
 }
@@ -454,7 +454,7 @@ function drawPile(now) {
   const p = at(pile.s), W = Math.round(WIN * SC);
   pile.win.setBounds({ x: Math.round(p.x - W / 2), y: Math.round(p.y - W / 2), width: W, height: W });
   if (!pile.win.isVisible()) pile.win.showInactive();
-  pile.win.webContents.send('pose', { angle: p.angle, dir: 1, mode: 'blocks', count: pile.count, flash: now < pile.flashUntil, scale: SC,
+  pile.win.webContents.send('pose', { angle: p.angle, dir: 1, mode: 'blocks', count: pile.count, flash: now < pile.flashUntil, scale: SC, holiday,
     eat: pile.eatStart ? now - pile.eatStart : -1, side: pile.side });
 }
 
@@ -470,6 +470,8 @@ function startFlight(k) {
 }
 
 function setFlight(v) { flight = FLIGHT.includes(v) ? v : 'off'; }
+let holiday = null;          // halloween / xmas / cny: hats on, and the pile turns into candy / presents / red envelopes
+function setHoliday(h) { holiday = h; }
 function setScale(v) { SC = v; }
 function setRoam(on) {
   roam = on;
@@ -591,4 +593,4 @@ function debugPlace(k, where) {
 }
 const debugState = () => active.map((k) => ({ kind: k, mode: C[k].mode, dir: C[k].dir, free: C[k].free, rideOn: C[k].rideOn, pos: centre(k), press: C[k].press, drag: C[k].drag, pile: pile.count, queue, roam, working }));
 
-module.exports = { debugPlace, init, show, setScale, setRoam, setFlight, status, pulse, shot, debugState, debugMode, debugDrag };
+module.exports = { debugPlace, init, show, setScale, setRoam, setFlight, setHoliday, status, pulse, shot, debugState, debugMode, debugDrag };
