@@ -1,6 +1,6 @@
 {
   "name": "claude-chan",
-  "version": "0.2.2",
+  "version": "0.2.3",
   "description": "An anime desktop pet for Claude Code",
   "main": "main.js",
   "scripts": {
